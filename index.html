@@ -253,43 +253,91 @@ require([
   const REGIONAL_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/0f88f7a738aa4e43ad6de8e94e61c3f4/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
 
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
-  // Structure: { year, label, seasons: [{ name, metroIndexId, regionalIndexId, metroImageId, regionalImageId }] }
-  // You MUST verify sublayer IDs by inspecting the MapServer JSON (?f=pjson)
+  // YEAR_CONFIG — real sublayer IDs from Perth Metro MapServer
+  // metroIdx = _Index sublayer (for coverage check)
+  // metroImg = _Image sublayer (for display)
+  // regIdx/regImg = Regional service (added once we get that service JSON)
   const YEAR_CONFIG = [
-    { year: 2025, seasons: [
-      { name: "Winter 2025", dot: "winter", metroIdx: 3,  regIdx: null, metroImg: 4,  regImg: null },
-      { name: "Summer 2025", dot: "summer", metroIdx: 8,  regIdx: null, metroImg: 9,  regImg: null },
-    ]},
-    { year: 2024, seasons: [
-      { name: "Winter 2024", dot: "winter", metroIdx: 13, regIdx: null, metroImg: 14, regImg: null },
-      { name: "Summer 2024", dot: "summer", metroIdx: 18, regIdx: null, metroImg: 19, regImg: null },
-    ]},
-    { year: 2023, seasons: [
-      { name: "Winter 2023", dot: "winter", metroIdx: 23, regIdx: null, metroImg: 24, regImg: null },
-      { name: "Summer 2023", dot: "summer", metroIdx: 28, regIdx: null, metroImg: 29, regImg: null },
-    ]},
-    { year: 2022, seasons: [{ name: "2022",       dot: "winter", metroIdx: 33, regIdx: 3,  metroImg: 34, regImg: 4  }]},
-    { year: 2021, seasons: [{ name: "2021",       dot: "winter", metroIdx: 38, regIdx: 8,  metroImg: 39, regImg: 9  }]},
-    { year: 2020, seasons: [{ name: "2020",       dot: "winter", metroIdx: 43, regIdx: 13, metroImg: 44, regImg: 14 }]},
-    { year: 2019, seasons: [{ name: "2019",       dot: "winter", metroIdx: 48, regIdx: 18, metroImg: 49, regImg: 19 }]},
-    { year: 2018, seasons: [{ name: "2018",       dot: "winter", metroIdx: 53, regIdx: 23, metroImg: 54, regImg: 24 }]},
-    { year: 2017, seasons: [{ name: "2017",       dot: "winter", metroIdx: 58, regIdx: 28, metroImg: 59, regImg: 29 }]},
-    { year: 2016, seasons: [{ name: "2016",       dot: "winter", metroIdx: 63, regIdx: 33, metroImg: 64, regImg: 34 }]},
-    { year: 2015, seasons: [{ name: "2015",       dot: "winter", metroIdx: 68, regIdx: 38, metroImg: 69, regImg: 39 }]},
-    { year: 2014, seasons: [{ name: "2014",       dot: "winter", metroIdx: 73, regIdx: 43, metroImg: 74, regImg: 44 }]},
-    { year: 2013, seasons: [{ name: "2013",       dot: "winter", metroIdx: 78, regIdx: 48, metroImg: 79, regImg: 49 }]},
-    { year: 2012, seasons: [{ name: "2012",       dot: "winter", metroIdx: 83, regIdx: 53, metroImg: 84, regImg: 54 }]},
-    { year: 2011, seasons: [{ name: "2011",       dot: "winter", metroIdx: 88, regIdx: 58, metroImg: 89, regImg: 59 }]},
-    { year: 2010, seasons: [{ name: "2010",       dot: "winter", metroIdx: 93, regIdx: 63, metroImg: 94, regImg: 64 }]},
-    { year: 2009, seasons: [{ name: "2009",       dot: "winter", metroIdx: null, regIdx: 68, metroImg: null, regImg: 69 }]},
-    { year: 2005, seasons: [{ name: "2005",       dot: "winter", metroIdx: null, regIdx: 73, metroImg: null, regImg: 74 }]},
-    { year: 2000, seasons: [{ name: "2000",       dot: "winter", metroIdx: null, regIdx: 78, metroImg: null, regImg: 79 }]},
-    { year: 1995, seasons: [{ name: "1995",       dot: "winter", metroIdx: null, regIdx: 83, metroImg: null, regImg: 84 }]},
-    { year: 1985, seasons: [{ name: "1985",       dot: "winter", metroIdx: null, regIdx: 88, metroImg: null, regImg: 89 }]},
-    { year: 1975, seasons: [{ name: "1975",       dot: "winter", metroIdx: null, regIdx: 93, metroImg: null, regImg: 94 }]},
-    { year: 1965, seasons: [{ name: "1965",       dot: "winter", metroIdx: null, regIdx: 98, metroImg: null, regImg: 99 }]},
-    { year: 1947, seasons: [{ name: "1947",       dot: "winter", metroIdx: null, regIdx: 103,metroImg: null, regImg: 104}]},
-  ];
+  { year: 2025, seasons: [
+    { name: "Winter 2025", dot: "winter", metroIdx: 516, regIdx: null, metroImg: 515, regImg: null },
+    { name: "Summer 2025", dot: "summer", metroIdx: 509, regIdx: null, metroImg: 508, regImg: null },
+  ]},
+  { year: 2024, seasons: [
+    { name: "Winter 2024", dot: "winter", metroIdx: 504, regIdx: null, metroImg: 503, regImg: null },
+    { name: "Summer 2024", dot: "summer", metroIdx: 496, regIdx: null, metroImg: 495, regImg: null },
+  ]},
+  { year: 2023, seasons: [
+    { name: "Winter 2023", dot: "winter", metroIdx: 481, regIdx: null, metroImg: 485, regImg: null },
+    { name: "Summer 2023", dot: "summer", metroIdx: 475, regIdx: null, metroImg: 479, regImg: null },
+    { name: "Jan Inset 2023", dot: "inset", metroIdx: 487, regIdx: null, metroImg: 490, regImg: null },
+  ]},
+  { year: 2022, seasons: [
+    { name: "Winter 2022", dot: "winter", metroIdx: 467, regIdx: null, metroImg: 470, regImg: null },
+    { name: "Summer 2022", dot: "summer", metroIdx: 455, regIdx: null, metroImg: 459, regImg: null },
+  ]},
+  { year: 2021, seasons: [
+    { name: "Winter 2021", dot: "winter", metroIdx: 448, regIdx: null, metroImg: 452, regImg: null },
+    { name: "May Inset 2021", dot: "inset", metroIdx: 442, regIdx: null, metroImg: 446, regImg: null },
+    { name: "Summer 2021", dot: "summer", metroIdx: 435, regIdx: null, metroImg: 439, regImg: null },
+  ]},
+  { year: 2020, seasons: [
+    { name: "Winter 2020", dot: "winter", metroIdx: 422, regIdx: null, metroImg: 426, regImg: null },
+    { name: "Summer 2020", dot: "summer", metroIdx: 416, regIdx: null, metroImg: 420, regImg: null },
+    { name: "Apr Inset 2020", dot: "inset", metroIdx: 410, regIdx: null, metroImg: 414, regImg: null },
+    { name: "Dec Inset 2020", dot: "inset", metroIdx: 433, regIdx: null, metroImg: 430, regImg: null },
+  ]},
+  { year: 2019, seasons: [
+    { name: "Winter 2019", dot: "winter", metroIdx: 385, regIdx: null, metroImg: 389, regImg: null },
+    { name: "Summer 2019", dot: "summer", metroIdx: 397, regIdx: null, metroImg: 401, regImg: null },
+    { name: "Apr Inset 2019", dot: "inset", metroIdx: 391, regIdx: null, metroImg: 395, regImg: null },
+    { name: "Nov Inset 2019", dot: "inset", metroIdx: 379, regIdx: null, metroImg: 383, regImg: null },
+  ]},
+  { year: 2018, seasons: [
+    { name: "Winter 2018", dot: "winter", metroIdx: 2, regIdx: null, metroImg: 6, regImg: null },
+    { name: "Autumn 2018", dot: "inset", metroIdx: 8, regIdx: null, metroImg: 12, regImg: null },
+    { name: "Summer 2018", dot: "summer", metroIdx: 14, regIdx: null, metroImg: 18, regImg: null },
+    { name: "Dec Inset 2018", dot: "inset", metroIdx: 303, regIdx: null, metroImg: 307, regImg: null },
+  ]},
+  { year: 2017, seasons: [
+    { name: "Winter 2017", dot: "winter", metroIdx: 33, regIdx: null, metroImg: 37, regImg: null },
+    { name: "Autumn 2017", dot: "inset", metroIdx: 39, regIdx: null, metroImg: 43, regImg: null },
+    { name: "Summer 2017", dot: "summer", metroIdx: 45, regIdx: null, metroImg: 49, regImg: null },
+    { name: "Spring 2017", dot: "inset", metroIdx: 21, regIdx: null, metroImg: 25, regImg: null },
+  ]},
+  { year: 2016, seasons: [
+    { name: "Winter 2016", dot: "winter", metroIdx: 64, regIdx: null, metroImg: 68, regImg: null },
+    { name: "Autumn 2016", dot: "inset", metroIdx: 70, regIdx: null, metroImg: 74, regImg: null },
+    { name: "Summer 2016", dot: "summer", metroIdx: 76, regIdx: null, metroImg: 80, regImg: null },
+    { name: "Spring 2016", dot: "inset", metroIdx: 58, regIdx: null, metroImg: 62, regImg: null },
+  ]},
+  { year: 2015, seasons: [
+    { name: "Winter 2015", dot: "winter", metroIdx: 89, regIdx: null, metroImg: 93, regImg: null },
+    { name: "Autumn 2015", dot: "inset", metroIdx: 95, regIdx: null, metroImg: 99, regImg: null },
+    { name: "Summer 2015", dot: "summer", metroIdx: 101, regIdx: null, metroImg: 105, regImg: null },
+    { name: "Spring 2015", dot: "inset", metroIdx: 83, regIdx: null, metroImg: 87, regImg: null },
+  ]},
+  { year: 2014, seasons: [
+    { name: "Winter 2014", dot: "winter", metroIdx: 114, regIdx: null, metroImg: 118, regImg: null },
+    { name: "Autumn 2014", dot: "inset", metroIdx: 120, regIdx: null, metroImg: 124, regImg: null },
+    { name: "Summer 2014", dot: "summer", metroIdx: 126, regIdx: null, metroImg: 130, regImg: null },
+    { name: "Spring 2014", dot: "inset", metroIdx: 108, regIdx: null, metroImg: 112, regImg: null },
+  ]},
+  { year: 2013, seasons: [
+    { name: "Winter 2013", dot: "winter", metroIdx: 133, regIdx: null, metroImg: 137, regImg: null },
+    { name: "Summer 2013", dot: "summer", metroIdx: 139, regIdx: null, metroImg: 143, regImg: null },
+  ]},
+  { year: 2012, seasons: [
+    { name: "Winter 2012", dot: "winter", metroIdx: 146, regIdx: null, metroImg: 150, regImg: null },
+    { name: "Summer 2012", dot: "summer", metroIdx: 152, regIdx: null, metroImg: 156, regImg: null },
+  ]},
+  { year: 2011, seasons: [
+    { name: "Winter 2011", dot: "winter", metroIdx: 159, regIdx: null, metroImg: 163, regImg: null },
+    { name: "Summer 2011", dot: "summer", metroIdx: 165, regIdx: null, metroImg: 169, regImg: null },
+  ]},
+  { year: 2010, seasons: [
+    { name: "2010", dot: "winter", metroIdx: 171, regIdx: null, metroImg: 175, regImg: null },
+  ]},
+];
 
   // ── Map Setup ─────────────────────────────────────────────────────────────
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
