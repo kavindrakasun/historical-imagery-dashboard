@@ -943,19 +943,58 @@ require([
         layerAdded = true;
       }
 
-      // Show year banner
+      // Show loading state in banner immediately
       const banner = document.getElementById("year-banner");
       const bannerText = document.getElementById("year-banner-text");
       const bannerSeason = document.getElementById("year-banner-season");
-      // Extract year number and season label
       const yearMatch = seasonName.match(/\d{4}/);
       const yearNum = yearMatch ? yearMatch[0] : seasonName;
       const seasonPart = seasonName.replace(yearNum, "").trim();
-      bannerText.textContent = yearNum;
-      bannerSeason.textContent = seasonPart || "Annual";
-      banner.classList.add("visible");
 
-      setStatus(`Showing: ${seasonName}`);
+      // Show a loading state first
+      bannerText.textContent = "...";
+      bannerSeason.textContent = "Loading";
+      banner.style.borderColor = "var(--muted)";
+      banner.style.color = "var(--muted)";
+      banner.classList.add("visible");
+      setStatus(`Loading ${seasonName}…`);
+
+      // Wait for imagery to actually render then update banner
+      const activeLayer = metroImgId !== null && metroImgId !== "null" && metroLayer ? metroLayer
+                        : archiveImgId !== null && archiveImgId !== "null" && archiveLayer ? archiveLayer
+                        : regImgId !== null && regImgId !== "null" && regionalLayer ? regionalLayer
+                        : regArchiveLayer;
+
+      if (activeLayer) {
+        view.whenLayerView(activeLayer).then(lv => {
+          // Poll updating state
+          const checkLoaded = () => {
+            if (!lv.updating) {
+              bannerText.textContent = yearNum;
+              bannerSeason.textContent = seasonPart || "Annual";
+              banner.style.borderColor = "";
+              banner.style.color = "";
+              setStatus(`Showing: ${seasonName}`);
+            } else {
+              setTimeout(checkLoaded, 200);
+            }
+          };
+          // Small delay to let updating start
+          setTimeout(checkLoaded, 300);
+        }).catch(() => {
+          bannerText.textContent = yearNum;
+          bannerSeason.textContent = seasonPart || "Annual";
+          banner.style.borderColor = "";
+          banner.style.color = "";
+          setStatus(`Showing: ${seasonName}`);
+        });
+      } else {
+        bannerText.textContent = yearNum;
+        bannerSeason.textContent = seasonPart || "Annual";
+        banner.style.borderColor = "";
+        banner.style.color = "";
+        setStatus(`Showing: ${seasonName}`);
+      }
     } else {
       if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
       if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
