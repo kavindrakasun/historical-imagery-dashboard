@@ -442,8 +442,10 @@ require([
     return lon >= bbox[0] && lon <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
   }
 
-  function seasonHasCoverage(seasonName, lon, lat) {
-    const bbox = coverageData.metro[seasonName];
+  function seasonHasCoverage(seasonName, lon, lat, source) {
+    const sourceData = source === 'archive' ? coverageData.archive : coverageData.metro;
+    if (!sourceData) return false;
+    const bbox = sourceData[seasonName];
     if (!bbox) return false;
     return pointInBbox(lon, lat, bbox);
   }
