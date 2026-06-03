@@ -245,8 +245,8 @@ require([
 ) {
 
   // ── Service URLs ──────────────────────────────────────────────────────────
-  const SCHOOLS_POINTS_URL   = "https://services1.arcgis.com/vkTwD8kHs4qqGMQN/arcgis/rest/services/DoE_SCHS_WA_Schools/FeatureServer/0";
-  const SCHOOLS_BOUNDARY_URL = "https://services1.arcgis.com/vkTwD8kHs4qqGMQN/arcgis/rest/services/DoE_SCHS_WA_Schools/FeatureServer/1";
+  const SCHOOLS_POINTS_URL   = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Locations_K/FeatureServer/18";
+  const SCHOOLS_BOUNDARY_URL = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Sites_K_2/FeatureServer/19";
 
   // SLIP Landgate Imagery MapServers
   const METRO_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
@@ -300,7 +300,7 @@ require([
   const schoolsLayer = new FeatureLayer({
     url: SCHOOLS_POINTS_URL,
     title: "Schools",
-    outFields: ["*"],
+    outFields: ["OBJECTID", "School_Name", "Location_Code", "Broad_Classification"],
     renderer: {
       type: "simple",
       symbol: { type: "simple-marker", color: "#7c6af7", outline: { color: "#fff", width: 1 }, size: 8 }
@@ -351,8 +351,8 @@ require([
 
   async function doSearch(term) {
     const q = new Query({
-      where: `SCHOOL_NAME LIKE '%${term.toUpperCase()}%'`,
-      outFields: ["*"], returnGeometry: true, num: 10
+      where: `School_Name LIKE '%${term.toUpperCase()}%'`,
+      outFields: ["OBJECTID","School_Name","Location_Code","Broad_Classification"], returnGeometry: true, num: 10
     });
     try {
       const result = await queryRest.executeQueryJSON(SCHOOLS_POINTS_URL, q);
@@ -368,10 +368,10 @@ require([
       features.forEach(f => {
         const div = document.createElement("div");
         div.className = "search-item";
-        div.innerHTML = `<div>${f.attributes.SCHOOL_NAME || f.attributes.NAME || "Unknown"}</div>
+        div.innerHTML = `<div>${f.attributes.School_Name || "Unknown"}</div>
           <div class="sub">${f.attributes.SUBURB || ""} ${f.attributes.EDUCATION_REGION ? "· " + f.attributes.EDUCATION_REGION : ""}</div>`;
         div.onclick = () => {
-          searchInput.value = f.attributes.SCHOOL_NAME || f.attributes.NAME || "";
+          searchInput.value = f.attributes.School_Name || "";
           searchResults.classList.remove("open");
           selectSchool(f);
         };
@@ -385,9 +385,9 @@ require([
   async function selectSchool(graphic) {
     selectedSchool = graphic;
     const attrs = graphic.attributes;
-    const name  = attrs.SCHOOL_NAME || attrs.NAME || "Unknown School";
-    const suburb = attrs.SUBURB || "";
-    const region = attrs.EDUCATION_REGION || "";
+    const name  = attrs.School_Name || "Unknown School";
+    const suburb = attrs.Broad_Classification || "";
+    const region = attrs.Location_Code || "";
 
     // Update card
     document.getElementById("sc-name").textContent = name;
@@ -409,8 +409,8 @@ require([
   async function fetchAndHighlightBoundary(schoolName, fallbackPoint) {
     try {
       const q = new Query({
-        where: `SCHOOL_NAME LIKE '%${schoolName.toUpperCase()}%'`,
-        outFields: ["*"], returnGeometry: true, num: 1
+        where: `School_Name LIKE '%${schoolName.toUpperCase()}%'`,
+        outFields: ["OBJECTID","School_Name","Location_Code","Broad_Classification"], returnGeometry: true, num: 1
       });
       const res = await queryRest.executeQueryJSON(SCHOOLS_BOUNDARY_URL, q);
       if (res.features.length > 0) {
