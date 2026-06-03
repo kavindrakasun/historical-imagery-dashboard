@@ -227,7 +227,7 @@
     <div class="login-box">
       <div class="login-icon">🛰️</div>
       <h2>HISTORICAL IMAGERY DASHBOARD</h2>
-      <p>Sign in with your ArcGIS Online account to access SLIP Landgate imagery services.</p>
+      <p>Sign in with your ArcGIS Online account (arcgis.com) to access SLIP Landgate imagery services.</p>
       <button id="login-btn" onclick="doLogin()">Sign in with ArcGIS</button>
       <div class="login-status" id="login-status"></div>
     </div>
@@ -398,19 +398,23 @@ require([
 ];
 
   // ── Auth Setup ────────────────────────────────────────────────────────────
-  const PORTAL_URL = "https://doewa.maps.arcgis.com";
+  const PORTAL_URL = "https://www.arcgis.com";
   const SLIP_SERVER = "https://utility.arcgis.com";
 
-  // Register OAuth — users sign in via popup
+  // Register OAuth — users sign in via arcgis.com which also covers utility.arcgis.com
   const oauthInfo = new OAuthInfo({
     appId: "q9CjEzBAGCo6ia0c",
     portalUrl: PORTAL_URL,
-    popup: false  // redirect-based login — more reliable from GitHub Pages
+    popup: false
   });
   esriId.registerOAuthInfos([oauthInfo]);
 
+  // Trust both servers upfront
+  esriConfig.request.trustedServers.push("https://utility.arcgis.com");
+  esriConfig.request.trustedServers.push("https://www.arcgis.com");
+
   // Check if already signed in
-  esriId.checkSignInStatus(PORTAL_URL + "/sharing")
+  esriId.checkSignInStatus(PORTAL_URL + "/sharing/rest")
     .then(credential => {
       onSignedIn(credential);
     })
@@ -424,7 +428,7 @@ require([
     btn.disabled = true;
     status.textContent = "Opening sign-in window…";
     try {
-      const credential = await esriId.getCredential(PORTAL_URL + "/sharing");
+      const credential = await esriId.getCredential(PORTAL_URL + "/sharing/rest");
       onSignedIn(credential);
     } catch(e) {
       status.textContent = "Sign-in cancelled or failed. Please try again.";
@@ -448,12 +452,26 @@ require([
     document.getElementById("user-badge").textContent = "● " + username;
     document.getElementById("user-badge").classList.add("visible");
     document.getElementById("logout-btn").classList.add("visible");
+
+    // Register the SLIP server so the JS API forwards credentials to it
+    esriConfig.request.trustedServers.push("https://utility.arcgis.com");
+
+    // Also register credential directly for the SLIP server
+    esriId.registerToken({
+      server: "https://utility.arcgis.com/sharing/rest",
+      token: credential.token,
+      userId: credential.userId,
+      ssl: true
+    });
   }
 
   // ── Map Setup ─────────────────────────────────────────────────────────────
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
 
-  const metroLayer   = new MapImageLayer({ url: METRO_SERVICE,    title: "Perth Metro Imagery",   sublayers: [], visible: false });
+  const metroLayer = new MapImageLayer({ 
+    url: METRO_SERVICE, title: "Perth Metro Imagery", sublayers: [], visible: false 
+  });
+  metroLayer.load().catch(() => console.warn("Metro layer failed to load — imagery display disabled"));
   const regionalLayer = REGIONAL_SERVICE 
     ? new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false })
     : null;
