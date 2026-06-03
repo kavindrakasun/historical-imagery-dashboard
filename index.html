@@ -169,6 +169,26 @@
     }
     #clear-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* Active year banner */
+    #year-banner {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(15,17,23,.85); border: 1px solid var(--accent);
+      border-radius: 12px; padding: 8px 24px;
+      font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700;
+      color: var(--accent); letter-spacing: 3px;
+      backdrop-filter: blur(8px); pointer-events: none;
+      display: none; z-index: 10;
+      box-shadow: 0 0 20px rgba(124,106,247,.3);
+      transition: opacity .3s;
+    }
+    #year-banner.visible { display: block; }
+    #year-banner .season-label {
+      display: block; font-family: 'DM Sans', sans-serif;
+      font-size: 11px; font-weight: 400; letter-spacing: 2px;
+      color: var(--muted); text-align: center; margin-top: 2px;
+      text-transform: uppercase;
+    }
+
     /* No imagery overlay */
     #no-imagery-msg {
       position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -270,6 +290,7 @@
       <div id="viewDiv"></div>
       <div id="status-bar">Click a school on the map or search above</div>
       <div id="no-imagery-msg">⚠ No imagery available for this location and year</div>
+      <div id="year-banner"><span id="year-banner-text">—</span><span class="season-label" id="year-banner-season"></span></div>
       <div id="coverage-summary">
         <div class="cs-title">Coverage Summary</div>
         <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
@@ -805,11 +826,24 @@ require([
         layerAdded = true;
       }
 
+      // Show year banner
+      const banner = document.getElementById("year-banner");
+      const bannerText = document.getElementById("year-banner-text");
+      const bannerSeason = document.getElementById("year-banner-season");
+      // Extract year number and season label
+      const yearMatch = seasonName.match(/\d{4}/);
+      const yearNum = yearMatch ? yearMatch[0] : seasonName;
+      const seasonPart = seasonName.replace(yearNum, "").trim();
+      bannerText.textContent = yearNum;
+      bannerSeason.textContent = seasonPart || "Annual";
+      banner.classList.add("visible");
+
       setStatus(`Showing: ${seasonName}`);
     } else {
       if (metroLayer)   { metroLayer.sublayers.removeAll();   metroLayer.visible = false; }
       if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
       if (regionalLayer){ regionalLayer.sublayers.removeAll();regionalLayer.visible = false; }
+      document.getElementById("year-banner").classList.remove("visible");
       setStatus("Click a year to view imagery");
     }
   };
@@ -842,6 +876,7 @@ require([
     document.getElementById("sc-name").textContent = "—";
     document.getElementById("sc-meta").textContent = "—";
     document.getElementById("school-search").value = "";
+    document.getElementById("year-banner").classList.remove("visible");
     coverageResults = {};
     setStatus("Click a school on the map or search above");
     view.goTo({ center: [117.0, -28.5], zoom: 6 });
