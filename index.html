@@ -329,8 +329,9 @@ require([
 
   // SLIP Landgate Imagery MapServers
   const METRO_SERVICE    = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
-  const ARCHIVE_SERVICE  = "https://utility.arcgis.com/usrsvcs/servers/64081e5c401d4436bd5372bec2af52a3/rest/services/Landgate_Subscription_Imagery/Perth_Metro_Archive/MapServer";
-  const REGIONAL_SERVICE = null; // TODO: add real Regional service URL once confirmed
+  const ARCHIVE_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/64081e5c401d4436bd5372bec2af52a3/rest/services/Landgate_Subscription_Imagery/Perth_Metro_Archive/MapServer";
+  const REGIONAL_SERVICE  = "https://utility.arcgis.com/usrsvcs/servers/d0516615739e4e2d94a822bd60f6ed35/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
+  const REG_ARCHIVE_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/4aee131703a94709b69468078258cb62/rest/services/Landgate_Subscription_Imagery/WA_Regional_Archive/MapServer";
 
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
   // YEAR_CONFIG — real sublayer IDs from Perth Metro MapServer
@@ -448,6 +449,75 @@ require([
   { year: 1953, seasons: [{ name: "1953", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 163, metroImg: null, regImg: null, archiveImg: 167 }]},
   { year: 1948, seasons: [{ name: "1948", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 175, metroImg: null, regImg: null, archiveImg: 179 }]},
   { year: 1947, seasons: [{ name: "1947", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 169, metroImg: null, regImg: null, archiveImg: 173 }]},
+  // ── WA Regional (2010-2026) ──
+  { year: 2026, seasons: [{ name: "Regional 2026", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 102, archiveImg: null }]},
+  { year: 2025, seasons: [{ name: "Regional 2025", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 92,  archiveImg: null }]},
+  { year: 2024, seasons: [{ name: "Regional 2024", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 87,  archiveImg: null }]},
+  { year: 2023, seasons: [{ name: "Regional 2023", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 83,  archiveImg: null }]},
+  { year: 2022, seasons: [{ name: "Regional 2022", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 77,  archiveImg: null }]},
+  { year: 2021, seasons: [{ name: "Regional 2021", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 5,   archiveImg: null }]},
+  { year: 2020, seasons: [{ name: "Regional 2020", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 11,  archiveImg: null }]},
+  { year: 2019, seasons: [{ name: "Regional 2019", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 17,  archiveImg: null }]},
+  { year: 2018, seasons: [{ name: "Regional 2018", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 23,  archiveImg: null }]},
+  { year: 2017, seasons: [{ name: "Regional 2017", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 29,  archiveImg: null }]},
+  { year: 2016, seasons: [{ name: "Regional 2016", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 35,  archiveImg: null }]},
+  { year: 2015, seasons: [{ name: "Regional 2015", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 41,  archiveImg: null }]},
+  { year: 2014, seasons: [{ name: "Regional 2014", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 47,  archiveImg: null }]},
+  { year: 2013, seasons: [{ name: "Regional 2013", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 53,  archiveImg: null }]},
+  { year: 2012, seasons: [{ name: "Regional 2012", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 59,  archiveImg: null }]},
+  { year: 2011, seasons: [{ name: "Regional 2011", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 65,  archiveImg: null }]},
+  { year: 2010, seasons: [{ name: "Regional 2010", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: 71,  archiveImg: null }]},
+  // ── WA Regional Archive (1952-2009) ──
+  { year: 2009, seasons: [{ name: "Regional 2009", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 5   }]},
+  { year: 2008, seasons: [{ name: "Regional 2008", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 11  }]},
+  { year: 2007, seasons: [{ name: "Regional 2007", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 17  }]},
+  { year: 2006, seasons: [{ name: "Regional 2006", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 23  }]},
+  { year: 2005, seasons: [{ name: "Regional 2005", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 29  }]},
+  { year: 2004, seasons: [{ name: "Regional 2004", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 35  }]},
+  { year: 2003, seasons: [{ name: "Regional 2003", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 41  }]},
+  { year: 2002, seasons: [{ name: "Regional 2002", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 47  }]},
+  { year: 2001, seasons: [{ name: "Regional 2001", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 53  }]},
+  { year: 2000, seasons: [{ name: "Regional 2000", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 59  }]},
+  { year: 1999, seasons: [{ name: "Regional 1999", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 65  }]},
+  { year: 1998, seasons: [{ name: "Regional 1998", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 71  }]},
+  { year: 1997, seasons: [{ name: "Regional 1997", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 77  }]},
+  { year: 1996, seasons: [{ name: "Regional 1996", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 83  }]},
+  { year: 1995, seasons: [{ name: "Regional 1995", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 89  }]},
+  { year: 1994, seasons: [{ name: "Regional 1994", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 95  }]},
+  { year: 1992, seasons: [{ name: "Regional 1992", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 101 }]},
+  { year: 1991, seasons: [{ name: "Regional 1991", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 275 }]},
+  { year: 1990, seasons: [{ name: "Regional 1990", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 107 }]},
+  { year: 1988, seasons: [{ name: "Regional 1988", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 113 }]},
+  { year: 1987, seasons: [{ name: "Regional 1987", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 119 }]},
+  { year: 1986, seasons: [{ name: "Regional 1986", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 125 }]},
+  { year: 1985, seasons: [{ name: "Regional 1985", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 281 }]},
+  { year: 1984, seasons: [{ name: "Regional 1984", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 131 }]},
+  { year: 1983, seasons: [{ name: "Regional 1983", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 287 }]},
+  { year: 1981, seasons: [{ name: "Regional 1981", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 137 }]},
+  { year: 1979, seasons: [{ name: "Regional 1979", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 293 }]},
+  { year: 1978, seasons: [{ name: "Regional 1978", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 299 }]},
+  { year: 1977, seasons: [{ name: "Regional 1977", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 143 }]},
+  { year: 1975, seasons: [{ name: "Regional 1975", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 305 }]},
+  { year: 1973, seasons: [{ name: "Regional 1973", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 149 }]},
+  { year: 1972, seasons: [{ name: "Regional 1972", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 155 }]},
+  { year: 1971, seasons: [{ name: "Regional 1971", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 161 }]},
+  { year: 1970, seasons: [{ name: "Regional 1970", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 167 }]},
+  { year: 1969, seasons: [{ name: "Regional 1969", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 173 }]},
+  { year: 1968, seasons: [{ name: "Regional 1968", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 179 }]},
+  { year: 1966, seasons: [{ name: "Regional 1966", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 185 }]},
+  { year: 1964, seasons: [{ name: "Regional 1964", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 191 }]},
+  { year: 1963, seasons: [{ name: "Regional 1963", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 197 }]},
+  { year: 1962, seasons: [{ name: "Regional 1962", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 203 }]},
+  { year: 1961, seasons: [{ name: "Regional 1961", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 209 }]},
+  { year: 1960, seasons: [{ name: "Regional 1960", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 215 }]},
+  { year: 1959, seasons: [{ name: "Regional 1959", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 221 }]},
+  { year: 1958, seasons: [{ name: "Regional 1958", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 227 }]},
+  { year: 1957, seasons: [{ name: "Regional 1957", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 233 }]},
+  { year: 1956, seasons: [{ name: "Regional 1956", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 239 }]},
+  { year: 1955, seasons: [{ name: "Regional 1955", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 245 }]},
+  { year: 1954, seasons: [{ name: "Regional 1954", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 251 }]},
+  { year: 1953, seasons: [{ name: "Regional 1953", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 257 }]},
+  { year: 1952, seasons: [{ name: "Regional 1952", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 263 }]},
 ];
 
   // ── Coverage Data ─────────────────────────────────────────────────────────
@@ -463,7 +533,35 @@ require([
     return lon >= bbox[0] && lon <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
   }
 
+  // Ray casting point-in-polygon
+  function pointInPolygon(lon, lat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j][0], yj = ring[j][1];
+      if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  function pointInAnyPolygon(lon, lat, rings) {
+    return rings.some(ring => pointInPolygon(lon, lat, ring));
+  }
+
   function seasonHasCoverage(seasonName, lon, lat, source) {
+    if (source === 'regional') {
+      const rings = coverageData.regional && coverageData.regional[seasonName];
+      if (!rings || rings.length === 0) return false;
+      return pointInAnyPolygon(lon, lat, rings);
+    }
+    if (source === 'reg_archive') {
+      const rings = coverageData.reg_archive && coverageData.reg_archive[seasonName];
+      if (!rings || rings.length === 0) return false;
+      return pointInAnyPolygon(lon, lat, rings);
+    }
+    // Metro and archive use bbox
     const sourceData = source === 'archive' ? coverageData.archive : coverageData.metro;
     if (!sourceData) return false;
     const bbox = sourceData[seasonName];
@@ -551,9 +649,15 @@ require([
     url: ARCHIVE_SERVICE, title: "Perth Metro Archive Imagery", sublayers: [], visible: false
   });
   archiveLayer.load().catch(() => console.warn("Archive layer failed to load"));
-  const regionalLayer = REGIONAL_SERVICE 
-    ? new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false })
-    : null;
+  const regionalLayer = new MapImageLayer({ 
+    url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false 
+  });
+  regionalLayer.load().catch(() => console.warn("Regional layer failed to load"));
+
+  const regArchiveLayer = new MapImageLayer({
+    url: REG_ARCHIVE_SERVICE, title: "Regional WA Archive Imagery", sublayers: [], visible: false
+  });
+  regArchiveLayer.load().catch(() => console.warn("Regional Archive layer failed to load"));
 
   const schoolsLayer = new FeatureLayer({
     url: SCHOOLS_POINTS_URL,
@@ -567,7 +671,7 @@ require([
 
   const map = new Map({
     basemap: "dark-gray-vector",
-    layers: [regionalLayer, metroLayer, archiveLayer, schoolsLayer, highlightLayer].filter(Boolean)
+    layers: [regionalLayer, regArchiveLayer, metroLayer, archiveLayer, schoolsLayer, highlightLayer].filter(Boolean)
   });
 
   const view = new MapView({
@@ -707,8 +811,11 @@ require([
         if (s.archiveIdx !== null) {
           coverageResults[`${s.name}_archive`] = seasonHasCoverage(s.name, lon, lat, 'archive');
         }
-        if (s.regIdx !== null) {
-          coverageResults[`${s.name}_regional`] = false;
+        if (s.regImg !== null && s.metroIdx === null && s.archiveIdx === null) {
+          coverageResults[`${s.name}_regional`] = seasonHasCoverage(s.name, lon, lat, 'regional');
+        }
+        if (s.regArchiveImg !== null && s.regArchiveImg !== undefined) {
+          coverageResults[`${s.name}_reg_archive`] = seasonHasCoverage(s.name, lon, lat, 'reg_archive');
         }
       });
     });
@@ -744,10 +851,13 @@ require([
   }
 
   function hasCoverageForSeason(s) {
-    const metro    = s.metroIdx   !== null ? coverageResults[`${s.name}_metro`]   : false;
-    const regional = s.regIdx     !== null ? coverageResults[`${s.name}_regional`]: false;
-    const archive  = s.archiveIdx !== null ? coverageResults[`${s.name}_archive`] : false;
-    return metro || regional || archive;
+    const metro      = s.metroIdx    !== null ? coverageResults[`${s.name}_metro`]       : false;
+    const archive    = s.archiveIdx  !== null ? coverageResults[`${s.name}_archive`]     : false;
+    const regional   = (s.regImg !== null && s.metroIdx === null && s.archiveIdx === null)
+                       ? coverageResults[`${s.name}_regional`]   : false;
+    const regArchive = (s.regArchiveImg !== null && s.regArchiveImg !== undefined)
+                       ? coverageResults[`${s.name}_reg_archive`] : false;
+    return metro || regional || archive || regArchive;
   }
 
   // ── Render Year Panel ─────────────────────────────────────────────────────
@@ -769,7 +879,7 @@ require([
         <div class="year-seasons">
           ${coveredSeasons.map(s => `
             <label class="season-item">
-              <input type="checkbox" onchange="toggleImagery(this, '${s.name}', ${s.metroImg ?? null}, ${s.regImg ?? null}, ${s.archiveImg ?? null})" />
+              <input type="checkbox" onchange="toggleImagery(this, '${s.name}', ${s.metroImg ?? null}, ${s.regImg ?? null}, ${s.archiveImg ?? null}, ${s.regArchiveImg ?? null})" />
               <span class="dot ${s.dot}"></span>
               <span class="season-label">${s.name}</span>
             </label>
@@ -804,9 +914,10 @@ require([
         if (cb !== checkbox) { cb.checked = false; }
       });
 
-      if (metroLayer)   { metroLayer.sublayers.removeAll();   metroLayer.visible = false; }
-      if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
-      if (regionalLayer){ regionalLayer.sublayers.removeAll();regionalLayer.visible = false; }
+      if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
+      if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
+      if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
+      if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
 
       let layerAdded = false;
 
@@ -825,6 +936,12 @@ require([
         regionalLayer.visible = true;
         layerAdded = true;
       }
+      const regArchiveImgId = arguments[5] || null;
+      if (regArchiveImgId !== null && regArchiveImgId !== "null" && regArchiveLayer) {
+        regArchiveLayer.sublayers.add({ id: parseInt(regArchiveImgId), visible: true });
+        regArchiveLayer.visible = true;
+        layerAdded = true;
+      }
 
       // Show year banner
       const banner = document.getElementById("year-banner");
@@ -840,9 +957,10 @@ require([
 
       setStatus(`Showing: ${seasonName}`);
     } else {
-      if (metroLayer)   { metroLayer.sublayers.removeAll();   metroLayer.visible = false; }
-      if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
-      if (regionalLayer){ regionalLayer.sublayers.removeAll();regionalLayer.visible = false; }
+      if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
+      if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
+      if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
+      if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
       document.getElementById("year-banner").classList.remove("visible");
       setStatus("Click a year to view imagery");
     }
@@ -866,9 +984,10 @@ require([
   window.clearSelection = function() {
     selectedSchool = null;
     highlightLayer.removeAll();
-    if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
-    if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
-    if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
+    if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
+    if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
+    if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
+    if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
     document.getElementById("school-card").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
     document.getElementById("empty-state").style.display = "";
