@@ -169,6 +169,15 @@
     }
     #clear-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* No imagery overlay */
+    #no-imagery-msg {
+      position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+      background: rgba(224,92,92,.15); border: 1px solid rgba(224,92,92,.4);
+      border-radius: 10px; padding: 12px 20px; font-size: 13px; color: #e05c5c;
+      pointer-events: none; white-space: nowrap; display: none; z-index: 10;
+    }
+    #no-imagery-msg.visible { display: block; }
+
     /* Login overlay */
     #login-overlay {
       position: fixed; inset: 0; background: rgba(10,12,18,.92);
@@ -260,10 +269,11 @@
     <div id="map-wrap">
       <div id="viewDiv"></div>
       <div id="status-bar">Click a school on the map or search above</div>
+      <div id="no-imagery-msg">⚠ No imagery available for this location and year</div>
       <div id="coverage-summary">
-        <div class="cs-title">Coverage Summary</div>
-        <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
-        <div class="cs-row"><span class="cs-label">Total years</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
+        <div class="cs-title">Imagery Available</div>
+        <div class="cs-row"><span class="cs-label">Years</span><span class="cs-val" id="cs-covered">—</span></div>
+        <div class="cs-row"><span class="cs-label">Total seasons</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
       </div>
     </div>
   </div>
@@ -585,29 +595,19 @@ require([
 
   // ── Coverage Check ────────────────────────────────────────────────────────
   async function checkCoverage(geometry) {
-    document.getElementById("year-loading").classList.add("visible");
+    document.getElementById("year-loading").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
     coverageResults = {};
 
-    // Build all checks
-    const checks = [];
+    // Mark all seasons as covered — we show all years
+    // and handle empty imagery gracefully when user selects a year
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
-        if (s.metroIdx !== null) checks.push({ service: METRO_SERVICE, idx: s.metroIdx, name: s.name, source: "metro" });
-        if (s.regIdx   !== null && REGIONAL_SERVICE) checks.push({ service: REGIONAL_SERVICE, idx: s.regIdx, name: s.name, source: "regional" });
+        if (s.metroIdx !== null) coverageResults[`${s.name}_metro`] = true;
+        if (s.regIdx   !== null) coverageResults[`${s.name}_regional`] = true;
       });
     });
 
-    // Run in batches of 4 to avoid gateway timeout
-    const BATCH_SIZE = 4;
-    for (let i = 0; i < checks.length; i += BATCH_SIZE) {
-      const batch = checks.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(batch.map(c => checkIndex(c.service, c.idx, geometry, c.name, c.source)));
-      // Small delay between batches to be kind to the server
-      if (i + BATCH_SIZE < checks.length) await new Promise(r => setTimeout(r, 300));
-    }
-
-    document.getElementById("year-loading").classList.remove("visible");
     renderYearPanel();
     updateCoverageSummary();
   }
@@ -620,13 +620,20 @@ require([
       returnCountOnly: true,
       where: "1=1"
     });
-    try {
-      const result = await queryRest.executeQueryJSON(layerUrl, q);
-      const hasCoverage = (result.count || 0) > 0;
-      coverageResults[`${seasonName}_${source}`] = hasCoverage;
-    } catch(e) {
-      // If index query fails, assume no coverage for safety
-      coverageResults[`${seasonName}_${source}`] = false;
+    // Try up to 2 times with a delay on failure
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const result = await queryRest.executeQueryJSON(layerUrl, q);
+        const hasCoverage = (result.count || 0) > 0;
+        coverageResults[`${seasonName}_${source}`] = hasCoverage;
+        return;
+      } catch(e) {
+        if (attempt === 0) {
+          await new Promise(r => setTimeout(r, 1000)); // wait 1s then retry
+        } else {
+          coverageResults[`${seasonName}_${source}`] = false;
+        }
+      }
     }
   }
 
@@ -642,15 +649,14 @@ require([
     panel.innerHTML = "";
 
     YEAR_CONFIG.forEach(yr => {
-      const coveredSeasons = yr.seasons.filter(s => hasCoverageForSeason(s));
-      if (coveredSeasons.length === 0) return;  // ← skip years with NO coverage
+      const coveredSeasons = yr.seasons; // show all seasons
 
       const group = document.createElement("div");
       group.className = "year-group";
       group.innerHTML = `
         <div class="year-group-header" onclick="toggleYear(this)">
           <span class="yr">${yr.year}</span>
-          <span class="coverage-badge covered">${coveredSeasons.length} season${coveredSeasons.length > 1 ? "s" : ""}</span>
+          <span class="coverage-badge covered">${yr.seasons.length} season${yr.seasons.length > 1 ? "s" : ""}</span>
         </div>
         <div class="year-seasons">
           ${coveredSeasons.map(s => `
@@ -711,15 +717,10 @@ require([
 
   // ── Coverage Summary ──────────────────────────────────────────────────────
   function updateCoverageSummary() {
-    let covered = 0, total = 0;
-    YEAR_CONFIG.forEach(yr => {
-      yr.seasons.forEach(s => {
-        total++;
-        if (hasCoverageForSeason(s)) covered++;
-      });
-    });
-    document.getElementById("cs-covered").textContent = covered;
-    document.getElementById("cs-total").textContent   = total;
+    let total = 0;
+    YEAR_CONFIG.forEach(yr => { total += yr.seasons.length; });
+    document.getElementById("cs-covered").textContent = YEAR_CONFIG.length;
+    document.getElementById("cs-total").textContent   = total + " seasons";
     document.getElementById("coverage-summary").classList.add("visible");
   }
 
