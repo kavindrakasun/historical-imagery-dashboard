@@ -298,7 +298,7 @@ require([
 
   // SLIP Landgate Imagery MapServers
   const METRO_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
-  const REGIONAL_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/0f88f7a738aa4e43ad6de8e94e61c3f4/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
+  const REGIONAL_SERVICE = null; // TODO: add real Regional service URL once confirmed
 
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
   // YEAR_CONFIG — real sublayer IDs from Perth Metro MapServer
@@ -444,7 +444,9 @@ require([
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
 
   const metroLayer   = new MapImageLayer({ url: METRO_SERVICE,    title: "Perth Metro Imagery",   sublayers: [], visible: false });
-  const regionalLayer = new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery",   sublayers: [], visible: false });
+  const regionalLayer = REGIONAL_SERVICE 
+    ? new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false })
+    : null;
 
   const schoolsLayer = new FeatureLayer({
     url: SCHOOLS_POINTS_URL,
@@ -458,7 +460,7 @@ require([
 
   const map = new Map({
     basemap: "dark-gray-vector",
-    layers: [regionalLayer, metroLayer, schoolsLayer, highlightLayer]
+    layers: [regionalLayer, metroLayer, schoolsLayer, highlightLayer].filter(Boolean)
   });
 
   const view = new MapView({
@@ -687,16 +689,15 @@ require([
         metroLayer.sublayers.add({ id: metroImgId, visible: true });
         metroLayer.visible = true;
       }
-      if (useRegional) {
+      if (useRegional && regionalLayer) {
         regionalLayer.sublayers.add({ id: regImgId, visible: true });
         regionalLayer.visible = true;
       }
       setStatus(`Showing: ${seasonName}`);
     } else {
       metroLayer.sublayers.removeAll();
-      regionalLayer.sublayers.removeAll();
+      if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
       metroLayer.visible = false;
-      regionalLayer.visible = false;
       setStatus("Click a year to view imagery");
     }
   };
@@ -720,9 +721,8 @@ require([
     selectedSchool = null;
     highlightLayer.removeAll();
     metroLayer.sublayers.removeAll();
-    regionalLayer.sublayers.removeAll();
+    if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
     metroLayer.visible = false;
-    regionalLayer.visible = false;
     document.getElementById("school-card").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
     document.getElementById("empty-state").style.display = "";
