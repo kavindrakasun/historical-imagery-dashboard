@@ -393,9 +393,9 @@ require([
 
   // Register OAuth — users sign in via popup
   const oauthInfo = new OAuthInfo({
-    appId: "q9CjEzBAGCo6ia0c",          // built-in ArcGIS Online app ID
+    appId: "q9CjEzBAGCo6ia0c",
     portalUrl: PORTAL_URL,
-    popup: true
+    popup: false  // redirect-based login — more reliable from GitHub Pages
   });
   esriId.registerOAuthInfos([oauthInfo]);
 
