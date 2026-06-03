@@ -713,10 +713,10 @@ require([
         if (cb !== checkbox) { cb.checked = false; }
       });
       // Clear previous imagery
-      metroLayer.sublayers.removeAll();
-      regionalLayer.sublayers.removeAll();
+      if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
+      if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
 
-      if (useMetro) {
+      if (useMetro && metroLayer) {
         metroLayer.sublayers.add({ id: metroImgId, visible: true });
         metroLayer.visible = true;
       }
@@ -726,9 +726,8 @@ require([
       }
       setStatus(`Showing: ${seasonName}`);
     } else {
-      metroLayer.sublayers.removeAll();
+      if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
       if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
-      metroLayer.visible = false;
       setStatus("Click a year to view imagery");
     }
   };
@@ -746,9 +745,8 @@ require([
   window.clearSelection = function() {
     selectedSchool = null;
     highlightLayer.removeAll();
-    metroLayer.sublayers.removeAll();
+    if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
     if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
-    metroLayer.visible = false;
     document.getElementById("school-card").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
     document.getElementById("empty-state").style.display = "";
