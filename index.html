@@ -168,6 +168,37 @@
       border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s;
     }
     #clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Login overlay */
+    #login-overlay {
+      position: fixed; inset: 0; background: rgba(10,12,18,.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; backdrop-filter: blur(6px);
+    }
+    #login-overlay.hidden { display: none; }
+    .login-box {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 40px 48px; text-align: center; max-width: 380px;
+    }
+    .login-box .login-icon { font-size: 48px; margin-bottom: 16px; }
+    .login-box h2 { font-family: 'Space Mono', monospace; font-size: 15px; color: var(--accent); margin-bottom: 8px; }
+    .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+    #login-btn {
+      background: var(--accent); color: #fff; border: none;
+      padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity .2s;
+      width: 100%;
+    }
+    #login-btn:hover { opacity: .85; }
+    #login-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .login-status { font-size: 12px; color: var(--muted); margin-top: 12px; min-height: 18px; }
+
+    /* User badge in header */
+    #user-badge { font-size: 11px; color: var(--success); background: rgba(76,175,125,.1); border: 1px solid rgba(76,175,125,.3); border-radius: 20px; padding: 3px 10px; display: none; }
+    #user-badge.visible { display: inline-block; }
+    #logout-btn { font-size: 11px; color: var(--muted); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s; display: none; }
+    #logout-btn.visible { display: inline-block; }
+    #logout-btn:hover { border-color: var(--danger); color: var(--danger); }
   </style>
 </head>
 <body>
@@ -175,10 +206,23 @@
   <header>
     <h1>⬡ HISTORICAL IMAGERY DASHBOARD</h1>
     <div style="display:flex;align-items:center;gap:10px;">
+      <span id="user-badge">● Logged in</span>
       <span class="badge">WA Department of Education</span>
+      <button id="logout-btn" onclick="doLogout()">↩ Logout</button>
       <button id="clear-btn" onclick="clearSelection()">✕ Clear School</button>
     </div>
   </header>
+
+  <!-- Login Overlay -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="login-icon">🛰️</div>
+      <h2>HISTORICAL IMAGERY DASHBOARD</h2>
+      <p>Sign in with your ArcGIS Online account to access SLIP Landgate imagery services.</p>
+      <button id="login-btn" onclick="doLogin()">Sign in with ArcGIS</button>
+      <div class="login-status" id="login-status"></div>
+    </div>
+  </div>
 
   <div id="main">
     <!-- Sidebar -->
@@ -237,11 +281,15 @@ require([
   "esri/Graphic",
   "esri/layers/GraphicsLayer",
   "esri/symbols/SimpleFillSymbol",
-  "esri/symbols/SimpleMarkerSymbol"
+  "esri/symbols/SimpleMarkerSymbol",
+  "esri/identity/IdentityManager",
+  "esri/identity/OAuthInfo",
+  "esri/config"
 ], function(
   Map, MapView, MapImageLayer, FeatureLayer,
   queryRest, Query, geometryEngine,
-  Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol
+  Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol,
+  esriId, OAuthInfo, esriConfig
 ) {
 
   // ── Service URLs ──────────────────────────────────────────────────────────
@@ -338,6 +386,59 @@ require([
     { name: "2010", dot: "winter", metroIdx: 171, regIdx: null, metroImg: 175, regImg: null },
   ]},
 ];
+
+  // ── Auth Setup ────────────────────────────────────────────────────────────
+  const PORTAL_URL = "https://doewa.maps.arcgis.com";
+  const SLIP_SERVER = "https://utility.arcgis.com";
+
+  // Register OAuth — users sign in via popup
+  const oauthInfo = new OAuthInfo({
+    appId: "q9CjEzBAGCo6ia0c",          // built-in ArcGIS Online app ID
+    portalUrl: PORTAL_URL,
+    popup: true
+  });
+  esriId.registerOAuthInfos([oauthInfo]);
+
+  // Check if already signed in
+  esriId.checkSignInStatus(PORTAL_URL + "/sharing")
+    .then(credential => {
+      onSignedIn(credential);
+    })
+    .catch(() => {
+      // Not signed in — overlay stays visible
+    });
+
+  window.doLogin = async function() {
+    const btn = document.getElementById("login-btn");
+    const status = document.getElementById("login-status");
+    btn.disabled = true;
+    status.textContent = "Opening sign-in window…";
+    try {
+      const credential = await esriId.getCredential(PORTAL_URL + "/sharing");
+      onSignedIn(credential);
+    } catch(e) {
+      status.textContent = "Sign-in cancelled or failed. Please try again.";
+      btn.disabled = false;
+    }
+  };
+
+  window.doLogout = function() {
+    esriId.destroyCredentials();
+    document.getElementById("user-badge").classList.remove("visible");
+    document.getElementById("logout-btn").classList.remove("visible");
+    document.getElementById("login-overlay").classList.remove("hidden");
+    document.getElementById("login-status").textContent = "";
+    document.getElementById("login-btn").disabled = false;
+    clearSelection();
+  };
+
+  function onSignedIn(credential) {
+    document.getElementById("login-overlay").classList.add("hidden");
+    const username = credential.userId || "Signed in";
+    document.getElementById("user-badge").textContent = "● " + username;
+    document.getElementById("user-badge").classList.add("visible");
+    document.getElementById("logout-btn").classList.add("visible");
+  }
 
   // ── Map Setup ─────────────────────────────────────────────────────────────
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
