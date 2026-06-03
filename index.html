@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historical Imagery Dashboard</title>
+
+  <!-- ArcGIS JS API 4.x -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css"/>
+  <script src="https://js.arcgis.com/4.29/"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --panel:     #181c27;
+      --panel2:    #1e2333;
+      --border:    #2a3047;
+      --accent:    #7c6af7;
+      --accent2:   #4fc3f7;
+      --text:      #e8eaf0;
+      --muted:     #6b7394;
+      --success:   #4caf7d;
+      --warn:      #f0a843;
+      --danger:    #e05c5c;
+      --radius:    10px;
+    }
+
+    html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+    /* ── Layout ── */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px; background: var(--panel);
+      border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100;
+    }
+    header h1 { font-family: 'Space Mono', monospace; font-size: 15px; letter-spacing: 1px; color: var(--accent); }
+    header .badge { font-size: 11px; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+
+    #main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Left Panel ── */
+    #sidebar {
+      width: 310px; flex-shrink: 0; background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .panel-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+
+    /* Search */
+    #search-wrap { position: relative; }
+    #school-search {
+      width: 100%; padding: 9px 12px 9px 34px;
+      background: var(--panel2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text); font-size: 13px;
+      font-family: 'DM Sans', sans-serif; outline: none; transition: border .2s;
+    }
+    #school-search:focus { border-color: var(--accent); }
+    #search-wrap .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+    #search-results {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius);
+      max-height: 220px; overflow-y: auto; z-index: 999; display: none;
+    }
+    #search-results.open { display: block; }
+    .search-item { padding: 9px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .15s; }
+    .search-item:last-child { border-bottom: none; }
+    .search-item:hover { background: var(--border); }
+    .search-item .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* School info card */
+    #school-card { display: none; }
+    #school-card.visible { display: block; }
+    .school-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .school-meta { font-size: 12px; color: var(--muted); }
+
+    /* Year list */
+    #year-panel { flex: 1; overflow-y: auto; padding: 0; }
+    #year-panel::-webkit-scrollbar { width: 4px; }
+    #year-panel::-webkit-scrollbar-track { background: transparent; }
+    #year-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .year-group { border-bottom: 1px solid var(--border); }
+    .year-group-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; cursor: pointer; transition: background .15s;
+      font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+    }
+    .year-group-header:hover { background: var(--panel2); }
+    .year-group-header .yr { color: var(--accent2); }
+    .year-group-header .coverage-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 20px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    }
+    .coverage-badge.covered   { background: rgba(76,175,125,.15); color: var(--success); border: 1px solid rgba(76,175,125,.3); }
+    .coverage-badge.checking  { background: rgba(240,168,67,.1);  color: var(--warn);    border: 1px solid rgba(240,168,67,.3); }
+    .coverage-badge.nocoverage{ background: rgba(224,92,92,.1);   color: var(--danger);  border: 1px solid rgba(224,92,92,.3); }
+
+    .year-seasons { padding: 0 16px 10px 28px; display: none; }
+    .year-seasons.open { display: block; }
+    .season-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; border-radius: 6px; cursor: pointer;
+      font-size: 12px; transition: background .15s; margin-bottom: 2px;
+    }
+    .season-item:hover { background: var(--panel2); }
+    .season-item input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
+    .season-item .season-label { flex: 1; }
+    .season-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dot.winter { background: var(--accent2); }
+    .dot.summer { background: var(--warn); }
+    .dot.inset  { background: var(--success); }
+
+    /* No school selected state */
+    #empty-state {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 30px; text-align: center; color: var(--muted);
+    }
+    #empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .5; }
+    #empty-state p { font-size: 13px; line-height: 1.6; }
+
+    /* Loading overlay for year panel */
+    #year-loading {
+      display: none; padding: 30px; text-align: center; color: var(--muted); font-size: 13px;
+    }
+    #year-loading.visible { display: block; }
+    .spinner {
+      width: 24px; height: 24px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Map ── */
+    #map-wrap { flex: 1; position: relative; }
+    #viewDiv { width: 100%; height: 100%; }
+
+    /* Status bar */
+    #status-bar {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      background: var(--panel); border: 1px solid var(--border); border-radius: 20px;
+      padding: 6px 16px; font-size: 12px; color: var(--muted);
+      pointer-events: none; white-space: nowrap; transition: opacity .3s;
+    }
+
+    /* Coverage summary pill */
+    #coverage-summary {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      font-size: 12px; display: none; min-width: 180px;
+    }
+    #coverage-summary.visible { display: block; }
+    #coverage-summary .cs-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .cs-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .cs-row .cs-label { color: var(--muted); }
+    .cs-row .cs-val { font-weight: 600; color: var(--success); }
+
+    /* Clear button */
+    #clear-btn {
+      font-size: 11px; color: var(--muted); background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s;
+    }
+    #clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>⬡ HISTORICAL IMAGERY DASHBOARD</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="badge">WA Department of Education</span>
+      <button id="clear-btn" onclick="clearSelection()">✕ Clear School</button>
+    </div>
+  </header>
+
+  <div id="main">
+    <!-- Sidebar -->
+    <div id="sidebar">
+
+      <!-- Search -->
+      <div class="panel-section">
+        <div class="panel-label">Search School</div>
+        <div id="search-wrap">
+          <span class="icon">🔍</span>
+          <input id="school-search" type="text" placeholder="Type school name..." autocomplete="off"/>
+          <div id="search-results"></div>
+        </div>
+      </div>
+
+      <!-- Selected school card -->
+      <div class="panel-section" id="school-card">
+        <div class="panel-label">Selected School</div>
+        <div class="school-name" id="sc-name">—</div>
+        <div class="school-meta" id="sc-meta">—</div>
+      </div>
+
+      <!-- Year list / empty state -->
+      <div id="year-loading"><div class="spinner"></div>Checking imagery coverage…</div>
+
+      <div id="empty-state">
+        <div class="empty-icon">🛰️</div>
+        <p>Search for a school or click one on the map to see available historical imagery years.</p>
+      </div>
+
+      <div id="year-panel"></div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-wrap">
+      <div id="viewDiv"></div>
+      <div id="status-bar">Click a school on the map or search above</div>
+      <div id="coverage-summary">
+        <div class="cs-title">Coverage Summary</div>
+        <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
+        <div class="cs-row"><span class="cs-label">Total years</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+require([
+  "esri/Map",
+  "esri/views/MapView",
+  "esri/layers/MapImageLayer",
+  "esri/layers/FeatureLayer",
+  "esri/rest/query",
+  "esri/rest/support/Query",
+  "esri/geometry/geometryEngine",
+  "esri/Graphic",
+  "esri/layers/GraphicsLayer",
+  "esri/symbols/SimpleFillSymbol",
+  "esri/symbols/SimpleMarkerSymbol"
+], function(
+  Map, MapView, MapImageLayer, FeatureLayer,
+  queryRest, Query, geometryEngine,
+  Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol
+) {
+
+  // ── Service URLs ──────────────────────────────────────────────────────────
+  const SCHOOLS_POINTS_URL   = "https://services1.arcgis.com/vkTwD8kHs4qqGMQN/arcgis/rest/services/DoE_SCHS_WA_Schools/FeatureServer/0";
+  const SCHOOLS_BOUNDARY_URL = "https://services1.arcgis.com/vkTwD8kHs4qqGMQN/arcgis/rest/services/DoE_SCHS_WA_Schools/FeatureServer/1";
+
+  // SLIP Landgate Imagery MapServers
+  const METRO_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
+  const REGIONAL_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/0f88f7a738aa4e43ad6de8e94e61c3f4/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
+
+  // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
+  // Structure: { year, label, seasons: [{ name, metroIndexId, regionalIndexId, metroImageId, regionalImageId }] }
+  // You MUST verify sublayer IDs by inspecting the MapServer JSON (?f=pjson)
+  const YEAR_CONFIG = [
+    { year: 2025, seasons: [
+      { name: "Winter 2025", dot: "winter", metroIdx: 3,  regIdx: null, metroImg: 4,  regImg: null },
+      { name: "Summer 2025", dot: "summer", metroIdx: 8,  regIdx: null, metroImg: 9,  regImg: null },
+    ]},
+    { year: 2024, seasons: [
+      { name: "Winter 2024", dot: "winter", metroIdx: 13, regIdx: null, metroImg: 14, regImg: null },
+      { name: "Summer 2024", dot: "summer", metroIdx: 18, regIdx: null, metroImg: 19, regImg: null },
+    ]},
+    { year: 2023, seasons: [
+      { name: "Winter 2023", dot: "winter", metroIdx: 23, regIdx: null, metroImg: 24, regImg: null },
+      { name: "Summer 2023", dot: "summer", metroIdx: 28, regIdx: null, metroImg: 29, regImg: null },
+    ]},
+    { year: 2022, seasons: [{ name: "2022",       dot: "winter", metroIdx: 33, regIdx: 3,  metroImg: 34, regImg: 4  }]},
+    { year: 2021, seasons: [{ name: "2021",       dot: "winter", metroIdx: 38, regIdx: 8,  metroImg: 39, regImg: 9  }]},
+    { year: 2020, seasons: [{ name: "2020",       dot: "winter", metroIdx: 43, regIdx: 13, metroImg: 44, regImg: 14 }]},
+    { year: 2019, seasons: [{ name: "2019",       dot: "winter", metroIdx: 48, regIdx: 18, metroImg: 49, regImg: 19 }]},
+    { year: 2018, seasons: [{ name: "2018",       dot: "winter", metroIdx: 53, regIdx: 23, metroImg: 54, regImg: 24 }]},
+    { year: 2017, seasons: [{ name: "2017",       dot: "winter", metroIdx: 58, regIdx: 28, metroImg: 59, regImg: 29 }]},
+    { year: 2016, seasons: [{ name: "2016",       dot: "winter", metroIdx: 63, regIdx: 33, metroImg: 64, regImg: 34 }]},
+    { year: 2015, seasons: [{ name: "2015",       dot: "winter", metroIdx: 68, regIdx: 38, metroImg: 69, regImg: 39 }]},
+    { year: 2014, seasons: [{ name: "2014",       dot: "winter", metroIdx: 73, regIdx: 43, metroImg: 74, regImg: 44 }]},
+    { year: 2013, seasons: [{ name: "2013",       dot: "winter", metroIdx: 78, regIdx: 48, metroImg: 79, regImg: 49 }]},
+    { year: 2012, seasons: [{ name: "2012",       dot: "winter", metroIdx: 83, regIdx: 53, metroImg: 84, regImg: 54 }]},
+    { year: 2011, seasons: [{ name: "2011",       dot: "winter", metroIdx: 88, regIdx: 58, metroImg: 89, regImg: 59 }]},
+    { year: 2010, seasons: [{ name: "2010",       dot: "winter", metroIdx: 93, regIdx: 63, metroImg: 94, regImg: 64 }]},
+    { year: 2009, seasons: [{ name: "2009",       dot: "winter", metroIdx: null, regIdx: 68, metroImg: null, regImg: 69 }]},
+    { year: 2005, seasons: [{ name: "2005",       dot: "winter", metroIdx: null, regIdx: 73, metroImg: null, regImg: 74 }]},
+    { year: 2000, seasons: [{ name: "2000",       dot: "winter", metroIdx: null, regIdx: 78, metroImg: null, regImg: 79 }]},
+    { year: 1995, seasons: [{ name: "1995",       dot: "winter", metroIdx: null, regIdx: 83, metroImg: null, regImg: 84 }]},
+    { year: 1985, seasons: [{ name: "1985",       dot: "winter", metroIdx: null, regIdx: 88, metroImg: null, regImg: 89 }]},
+    { year: 1975, seasons: [{ name: "1975",       dot: "winter", metroIdx: null, regIdx: 93, metroImg: null, regImg: 94 }]},
+    { year: 1965, seasons: [{ name: "1965",       dot: "winter", metroIdx: null, regIdx: 98, metroImg: null, regImg: 99 }]},
+    { year: 1947, seasons: [{ name: "1947",       dot: "winter", metroIdx: null, regIdx: 103,metroImg: null, regImg: 104}]},
+  ];
+
+  // ── Map Setup ─────────────────────────────────────────────────────────────
+  const highlightLayer = new GraphicsLayer({ title: "Selection" });
+
+  const metroLayer   = new MapImageLayer({ url: METRO_SERVICE,    title: "Perth Metro Imagery",   sublayers: [], visible: false });
+  const regionalLayer = new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery",   sublayers: [], visible: false });
+
+  const schoolsLayer = new FeatureLayer({
+    url: SCHOOLS_POINTS_URL,
+    title: "Schools",
+    outFields: ["*"],
+    renderer: {
+      type: "simple",
+      symbol: { type: "simple-marker", color: "#7c6af7", outline: { color: "#fff", width: 1 }, size: 8 }
+    }
+  });
+
+  const map = new Map({
+    basemap: "dark-gray-vector",
+    layers: [regionalLayer, metroLayer, schoolsLayer, highlightLayer]
+  });
+
+  const view = new MapView({
+    container: "viewDiv",
+    map,
+    center: [117.0, -28.5],
+    zoom: 6
+  });
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let selectedSchool   = null;
+  let activeImageSublayers = [];   // currently visible imagery sublayers
+  let coverageResults  = {};       // { seasonName: bool }
+
+  // ── School Click on Map ───────────────────────────────────────────────────
+  view.on("click", async (evt) => {
+    const hitResult = await view.hitTest(evt, { include: [schoolsLayer] });
+    if (hitResult.results.length > 0) {
+      const graphic = hitResult.results[0].graphic;
+      selectSchool(graphic);
+    }
+  });
+
+  // ── Search ────────────────────────────────────────────────────────────────
+  const searchInput   = document.getElementById("school-search");
+  const searchResults = document.getElementById("search-results");
+  let searchTimer;
+
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const val = searchInput.value.trim();
+    if (val.length < 2) { searchResults.classList.remove("open"); return; }
+    searchTimer = setTimeout(() => doSearch(val), 300);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#search-wrap")) searchResults.classList.remove("open");
+  });
+
+  async function doSearch(term) {
+    const q = new Query({
+      where: `SCHOOL_NAME LIKE '%${term.toUpperCase()}%'`,
+      outFields: ["*"], returnGeometry: true, num: 10
+    });
+    try {
+      const result = await queryRest.executeQueryJSON(SCHOOLS_POINTS_URL, q);
+      renderSearchResults(result.features);
+    } catch(e) { console.warn("Search error", e); }
+  }
+
+  function renderSearchResults(features) {
+    searchResults.innerHTML = "";
+    if (!features.length) {
+      searchResults.innerHTML = `<div class="search-item" style="color:var(--muted)">No schools found</div>`;
+    } else {
+      features.forEach(f => {
+        const div = document.createElement("div");
+        div.className = "search-item";
+        div.innerHTML = `<div>${f.attributes.SCHOOL_NAME || f.attributes.NAME || "Unknown"}</div>
+          <div class="sub">${f.attributes.SUBURB || ""} ${f.attributes.EDUCATION_REGION ? "· " + f.attributes.EDUCATION_REGION : ""}</div>`;
+        div.onclick = () => {
+          searchInput.value = f.attributes.SCHOOL_NAME || f.attributes.NAME || "";
+          searchResults.classList.remove("open");
+          selectSchool(f);
+        };
+        searchResults.appendChild(div);
+      });
+    }
+    searchResults.classList.add("open");
+  }
+
+  // ── Select School ─────────────────────────────────────────────────────────
+  async function selectSchool(graphic) {
+    selectedSchool = graphic;
+    const attrs = graphic.attributes;
+    const name  = attrs.SCHOOL_NAME || attrs.NAME || "Unknown School";
+    const suburb = attrs.SUBURB || "";
+    const region = attrs.EDUCATION_REGION || "";
+
+    // Update card
+    document.getElementById("sc-name").textContent = name;
+    document.getElementById("sc-meta").textContent = [suburb, region].filter(Boolean).join(" · ");
+    document.getElementById("school-card").classList.add("visible");
+    document.getElementById("empty-state").style.display = "none";
+
+    // Zoom
+    view.goTo({ target: graphic.geometry, zoom: 16 });
+
+    // Highlight boundary
+    highlightLayer.removeAll();
+    await fetchAndHighlightBoundary(name, graphic.geometry);
+
+    // Check coverage
+    await checkCoverage(graphic.geometry);
+  }
+
+  async function fetchAndHighlightBoundary(schoolName, fallbackPoint) {
+    try {
+      const q = new Query({
+        where: `SCHOOL_NAME LIKE '%${schoolName.toUpperCase()}%'`,
+        outFields: ["*"], returnGeometry: true, num: 1
+      });
+      const res = await queryRest.executeQueryJSON(SCHOOLS_BOUNDARY_URL, q);
+      if (res.features.length > 0) {
+        highlightLayer.add(new Graphic({
+          geometry: res.features[0].geometry,
+          symbol: new SimpleFillSymbol({ color: [255,80,80,0], outline: { color: [255,80,80,1], width: 2 } })
+        }));
+      } else {
+        highlightLayer.add(new Graphic({
+          geometry: fallbackPoint,
+          symbol: new SimpleMarkerSymbol({ color: "#7c6af7", outline: { color: "#fff", width: 2 }, size: 14 })
+        }));
+      }
+    } catch(e) {
+      highlightLayer.add(new Graphic({
+        geometry: fallbackPoint,
+        symbol: new SimpleMarkerSymbol({ color: "#7c6af7", outline: { color: "#fff", width: 2 }, size: 14 })
+      }));
+    }
+  }
+
+  // ── Coverage Check ────────────────────────────────────────────────────────
+  async function checkCoverage(geometry) {
+    document.getElementById("year-loading").classList.add("visible");
+    document.getElementById("year-panel").innerHTML = "";
+    coverageResults = {};
+
+    // Query all Index sublayers in parallel
+    const checks = [];
+    YEAR_CONFIG.forEach(yr => {
+      yr.seasons.forEach(s => {
+        if (s.metroIdx !== null) checks.push(checkIndex(METRO_SERVICE,    s.metroIdx,   geometry, s.name, "metro"));
+        if (s.regIdx   !== null) checks.push(checkIndex(REGIONAL_SERVICE, s.regIdx,     geometry, s.name, "regional"));
+      });
+    });
+
+    await Promise.allSettled(checks);
+
+    document.getElementById("year-loading").classList.remove("visible");
+    renderYearPanel();
+    updateCoverageSummary();
+  }
+
+  async function checkIndex(serviceUrl, sublayerId, geometry, seasonName, source) {
+    const layerUrl = `${serviceUrl}/${sublayerId}`;
+    const q = new Query({
+      geometry,
+      spatialRelationship: "intersects",
+      returnCountOnly: true,
+      where: "1=1"
+    });
+    try {
+      const result = await queryRest.executeQueryJSON(layerUrl, q);
+      const hasCoverage = (result.count || 0) > 0;
+      coverageResults[`${seasonName}_${source}`] = hasCoverage;
+    } catch(e) {
+      // If index query fails, assume no coverage for safety
+      coverageResults[`${seasonName}_${source}`] = false;
+    }
+  }
+
+  function hasCoverageForSeason(s) {
+    const metro    = s.metroIdx !== null ? coverageResults[`${s.name}_metro`]    : false;
+    const regional = s.regIdx   !== null ? coverageResults[`${s.name}_regional`] : false;
+    return metro || regional;
+  }
+
+  // ── Render Year Panel ─────────────────────────────────────────────────────
+  function renderYearPanel() {
+    const panel = document.getElementById("year-panel");
+    panel.innerHTML = "";
+
+    YEAR_CONFIG.forEach(yr => {
+      const coveredSeasons = yr.seasons.filter(s => hasCoverageForSeason(s));
+      if (coveredSeasons.length === 0) return;  // ← skip years with NO coverage
+
+      const group = document.createElement("div");
+      group.className = "year-group";
+      group.innerHTML = `
+        <div class="year-group-header" onclick="toggleYear(this)">
+          <span class="yr">${yr.year}</span>
+          <span class="coverage-badge covered">${coveredSeasons.length} season${coveredSeasons.length > 1 ? "s" : ""}</span>
+        </div>
+        <div class="year-seasons">
+          ${coveredSeasons.map(s => `
+            <label class="season-item">
+              <input type="checkbox" onchange="toggleImagery(this, '${s.name}', ${s.metroImg}, ${s.regImg})" />
+              <span class="dot ${s.dot}"></span>
+              <span class="season-label">${s.name}</span>
+            </label>
+          `).join("")}
+        </div>`;
+      panel.appendChild(group);
+    });
+
+    if (panel.innerHTML === "") {
+      panel.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">
+        No imagery coverage found for this school location.</div>`;
+    }
+  }
+
+  // ── Toggle Year Expand ────────────────────────────────────────────────────
+  window.toggleYear = function(header) {
+    const seasons = header.nextElementSibling;
+    seasons.classList.toggle("open");
+  };
+
+  // ── Toggle Imagery Layer ──────────────────────────────────────────────────
+  window.toggleImagery = function(checkbox, seasonName, metroImgId, regImgId) {
+    const key = `${seasonName}_metro`;
+    const keyR = `${seasonName}_regional`;
+    const useMetro    = metroImgId !== null && coverageResults[key];
+    const useRegional = regImgId   !== null && coverageResults[keyR];
+
+    if (checkbox.checked) {
+      // Uncheck all others
+      document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => {
+        if (cb !== checkbox) { cb.checked = false; }
+      });
+      // Clear previous imagery
+      metroLayer.sublayers.removeAll();
+      regionalLayer.sublayers.removeAll();
+
+      if (useMetro) {
+        metroLayer.sublayers.add({ id: metroImgId, visible: true });
+        metroLayer.visible = true;
+      }
+      if (useRegional) {
+        regionalLayer.sublayers.add({ id: regImgId, visible: true });
+        regionalLayer.visible = true;
+      }
+      setStatus(`Showing: ${seasonName}`);
+    } else {
+      metroLayer.sublayers.removeAll();
+      regionalLayer.sublayers.removeAll();
+      metroLayer.visible = false;
+      regionalLayer.visible = false;
+      setStatus("Click a year to view imagery");
+    }
+  };
+
+  // ── Coverage Summary ──────────────────────────────────────────────────────
+  function updateCoverageSummary() {
+    let covered = 0, total = 0;
+    YEAR_CONFIG.forEach(yr => {
+      yr.seasons.forEach(s => {
+        total++;
+        if (hasCoverageForSeason(s)) covered++;
+      });
+    });
+    document.getElementById("cs-covered").textContent = covered;
+    document.getElementById("cs-total").textContent   = total;
+    document.getElementById("coverage-summary").classList.add("visible");
+  }
+
+  // ── Clear ─────────────────────────────────────────────────────────────────
+  window.clearSelection = function() {
+    selectedSchool = null;
+    highlightLayer.removeAll();
+    metroLayer.sublayers.removeAll();
+    regionalLayer.sublayers.removeAll();
+    metroLayer.visible = false;
+    regionalLayer.visible = false;
+    document.getElementById("school-card").classList.remove("visible");
+    document.getElementById("year-panel").innerHTML = "";
+    document.getElementById("empty-state").style.display = "";
+    document.getElementById("coverage-summary").classList.remove("visible");
+    document.getElementById("sc-name").textContent = "—";
+    document.getElementById("sc-meta").textContent = "—";
+    document.getElementById("school-search").value = "";
+    coverageResults = {};
+    setStatus("Click a school on the map or search above");
+    view.goTo({ center: [117.0, -28.5], zoom: 6 });
+  };
+
+  function setStatus(msg) {
+    document.getElementById("status-bar").textContent = msg;
+  }
+
+  view.when(() => setStatus("Map ready — search or click a school"));
+
+}); // end require
+</script>
+</body>
+</html>
