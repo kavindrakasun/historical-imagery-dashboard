@@ -307,7 +307,8 @@ require([
   const SCHOOLS_BOUNDARY_URL = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Sites_K_2/FeatureServer/19";
 
   // SLIP Landgate Imagery MapServers
-  const METRO_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
+  const METRO_SERVICE    = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
+  const ARCHIVE_SERVICE  = "https://utility.arcgis.com/usrsvcs/servers/64081e5c401d4436bd5372bec2af52a3/rest/services/Landgate_Subscription_Imagery/Perth_Metro_Archive/MapServer";
   const REGIONAL_SERVICE = null; // TODO: add real Regional service URL once confirmed
 
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
@@ -395,6 +396,37 @@ require([
   { year: 2010, seasons: [
     { name: "2010", dot: "winter", metroIdx: 171, regIdx: null, metroImg: 175, regImg: null },
   ]},
+  // ── LGATE-332 Perth Metro Archive (2009-1947) ──
+  { year: 2009, seasons: [{ name: "2009", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 1,   metroImg: null, regImg: null, archiveImg: 5   }]},
+  { year: 2008, seasons: [{ name: "2008", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 7,   metroImg: null, regImg: null, archiveImg: 11  }]},
+  { year: 2007, seasons: [{ name: "2007", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 13,  metroImg: null, regImg: null, archiveImg: 17  }]},
+  { year: 2006, seasons: [{ name: "2006", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 19,  metroImg: null, regImg: null, archiveImg: 23  }]},
+  { year: 2005, seasons: [{ name: "2005", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 25,  metroImg: null, regImg: null, archiveImg: 29  }]},
+  { year: 2004, seasons: [{ name: "2004", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 31,  metroImg: null, regImg: null, archiveImg: 35  }]},
+  { year: 2003, seasons: [{ name: "2003", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 37,  metroImg: null, regImg: null, archiveImg: 41  }]},
+  { year: 2002, seasons: [{ name: "2002", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 43,  metroImg: null, regImg: null, archiveImg: 47  }]},
+  { year: 2001, seasons: [{ name: "2001", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 49,  metroImg: null, regImg: null, archiveImg: 53  }]},
+  { year: 2000, seasons: [{ name: "2000", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 55,  metroImg: null, regImg: null, archiveImg: 59  }]},
+  { year: 1999, seasons: [{ name: "1999", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 61,  metroImg: null, regImg: null, archiveImg: 65  }]},
+  { year: 1995, seasons: [{ name: "1995", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 67,  metroImg: null, regImg: null, archiveImg: 71  }]},
+  { year: 1993, seasons: [{ name: "1993", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 73,  metroImg: null, regImg: null, archiveImg: 77  }]},
+  { year: 1991, seasons: [{ name: "1991", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 79,  metroImg: null, regImg: null, archiveImg: 83  }]},
+  { year: 1989, seasons: [{ name: "1989", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 85,  metroImg: null, regImg: null, archiveImg: 89  }]},
+  { year: 1987, seasons: [{ name: "1987", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 91,  metroImg: null, regImg: null, archiveImg: 95  }]},
+  { year: 1985, seasons: [{ name: "1985", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 97,  metroImg: null, regImg: null, archiveImg: 101 }]},
+  { year: 1983, seasons: [{ name: "1983", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 103, metroImg: null, regImg: null, archiveImg: 107 }]},
+  { year: 1981, seasons: [{ name: "1981", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 109, metroImg: null, regImg: null, archiveImg: 113 }]},
+  { year: 1979, seasons: [{ name: "1979", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 115, metroImg: null, regImg: null, archiveImg: 119 }]},
+  { year: 1977, seasons: [{ name: "1977", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 121, metroImg: null, regImg: null, archiveImg: 125 }]},
+  { year: 1974, seasons: [{ name: "1974", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 127, metroImg: null, regImg: null, archiveImg: 131 }]},
+  { year: 1970, seasons: [{ name: "1970", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 133, metroImg: null, regImg: null, archiveImg: 137 }]},
+  { year: 1965, seasons: [{ name: "1965", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 139, metroImg: null, regImg: null, archiveImg: 143 }]},
+  { year: 1963, seasons: [{ name: "1963", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 145, metroImg: null, regImg: null, archiveImg: 149 }]},
+  { year: 1961, seasons: [{ name: "1961", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 151, metroImg: null, regImg: null, archiveImg: 155 }]},
+  { year: 1955, seasons: [{ name: "1955", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 157, metroImg: null, regImg: null, archiveImg: 161 }]},
+  { year: 1953, seasons: [{ name: "1953", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 163, metroImg: null, regImg: null, archiveImg: 167 }]},
+  { year: 1948, seasons: [{ name: "1948", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 175, metroImg: null, regImg: null, archiveImg: 179 }]},
+  { year: 1947, seasons: [{ name: "1947", dot: "winter", metroIdx: null, regIdx: null, archiveIdx: 169, metroImg: null, regImg: null, archiveImg: 173 }]},
 ];
 
   // ── Coverage Data ─────────────────────────────────────────────────────────
@@ -490,7 +522,12 @@ require([
   const metroLayer = new MapImageLayer({ 
     url: METRO_SERVICE, title: "Perth Metro Imagery", sublayers: [], visible: false 
   });
-  metroLayer.load().catch(() => console.warn("Metro layer failed to load — imagery display disabled"));
+  metroLayer.load().catch(() => console.warn("Metro layer failed to load"));
+
+  const archiveLayer = new MapImageLayer({
+    url: ARCHIVE_SERVICE, title: "Perth Metro Archive Imagery", sublayers: [], visible: false
+  });
+  archiveLayer.load().catch(() => console.warn("Archive layer failed to load"));
   const regionalLayer = REGIONAL_SERVICE 
     ? new MapImageLayer({ url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false })
     : null;
@@ -507,7 +544,7 @@ require([
 
   const map = new Map({
     basemap: "dark-gray-vector",
-    layers: [regionalLayer, metroLayer, schoolsLayer, highlightLayer].filter(Boolean)
+    layers: [regionalLayer, metroLayer, archiveLayer, schoolsLayer, highlightLayer].filter(Boolean)
   });
 
   const view = new MapView({
@@ -642,10 +679,12 @@ require([
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
         if (s.metroIdx !== null) {
-          coverageResults[`${s.name}_metro`] = seasonHasCoverage(s.name, lon, lat);
+          coverageResults[`${s.name}_metro`] = seasonHasCoverage(s.name, lon, lat, 'metro');
+        }
+        if (s.archiveIdx !== null) {
+          coverageResults[`${s.name}_archive`] = seasonHasCoverage(s.name, lon, lat, 'archive');
         }
         if (s.regIdx !== null) {
-          // Regional coverage — will be added once we have Regional bbox data
           coverageResults[`${s.name}_regional`] = false;
         }
       });
@@ -682,9 +721,10 @@ require([
   }
 
   function hasCoverageForSeason(s) {
-    const metro    = s.metroIdx !== null ? coverageResults[`${s.name}_metro`]    : false;
-    const regional = s.regIdx   !== null ? coverageResults[`${s.name}_regional`] : false;
-    return metro || regional;
+    const metro    = s.metroIdx   !== null ? coverageResults[`${s.name}_metro`]   : false;
+    const regional = s.regIdx     !== null ? coverageResults[`${s.name}_regional`]: false;
+    const archive  = s.archiveIdx !== null ? coverageResults[`${s.name}_archive`] : false;
+    return metro || regional || archive;
   }
 
   // ── Render Year Panel ─────────────────────────────────────────────────────
@@ -778,6 +818,7 @@ require([
     selectedSchool = null;
     highlightLayer.removeAll();
     if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
+    if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
     if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
     document.getElementById("school-card").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
