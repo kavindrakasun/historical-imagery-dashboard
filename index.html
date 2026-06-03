@@ -589,16 +589,23 @@ require([
     document.getElementById("year-panel").innerHTML = "";
     coverageResults = {};
 
-    // Query all Index sublayers in parallel
+    // Build all checks
     const checks = [];
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
-        if (s.metroIdx !== null) checks.push(checkIndex(METRO_SERVICE,    s.metroIdx,   geometry, s.name, "metro"));
-        if (s.regIdx   !== null) checks.push(checkIndex(REGIONAL_SERVICE, s.regIdx,     geometry, s.name, "regional"));
+        if (s.metroIdx !== null) checks.push({ service: METRO_SERVICE, idx: s.metroIdx, name: s.name, source: "metro" });
+        if (s.regIdx   !== null && REGIONAL_SERVICE) checks.push({ service: REGIONAL_SERVICE, idx: s.regIdx, name: s.name, source: "regional" });
       });
     });
 
-    await Promise.allSettled(checks);
+    // Run in batches of 4 to avoid gateway timeout
+    const BATCH_SIZE = 4;
+    for (let i = 0; i < checks.length; i += BATCH_SIZE) {
+      const batch = checks.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(batch.map(c => checkIndex(c.service, c.idx, geometry, c.name, c.source)));
+      // Small delay between batches to be kind to the server
+      if (i + BATCH_SIZE < checks.length) await new Promise(r => setTimeout(r, 300));
+    }
 
     document.getElementById("year-loading").classList.remove("visible");
     renderYearPanel();
