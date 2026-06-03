@@ -748,7 +748,7 @@ require([
         <div class="year-seasons">
           ${coveredSeasons.map(s => `
             <label class="season-item">
-              <input type="checkbox" onchange="toggleImagery(this, '${s.name}', ${s.metroImg}, ${s.regImg})" />
+              <input type="checkbox" onchange="toggleImagery(this, '${s.name}', ${s.metroImg ?? null}, ${s.regImg ?? null}, ${s.archiveImg ?? null})" />
               <span class="dot ${s.dot}"></span>
               <span class="season-label">${s.name}</span>
             </label>
@@ -770,33 +770,46 @@ require([
   };
 
   // ── Toggle Imagery Layer ──────────────────────────────────────────────────
-  window.toggleImagery = function(checkbox, seasonName, metroImgId, regImgId) {
-    const key = `${seasonName}_metro`;
-    const keyR = `${seasonName}_regional`;
-    const useMetro    = metroImgId !== null && coverageResults[key];
-    const useRegional = regImgId   !== null && coverageResults[keyR];
+  // Track current imagery check timer
+  let imageryCheckTimer = null;
+
+  window.toggleImagery = function(checkbox, seasonName, metroImgId, regImgId, archiveImgId) {
+    const noImgMsg = document.getElementById("no-imagery-msg");
+    if (imageryCheckTimer) { clearTimeout(imageryCheckTimer); imageryCheckTimer = null; }
+    noImgMsg.classList.remove("visible");
 
     if (checkbox.checked) {
-      // Uncheck all others
       document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => {
         if (cb !== checkbox) { cb.checked = false; }
       });
-      // Clear previous imagery
-      if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
-      if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
 
-      if (useMetro && metroLayer) {
-        metroLayer.sublayers.add({ id: metroImgId, visible: true });
+      if (metroLayer)   { metroLayer.sublayers.removeAll();   metroLayer.visible = false; }
+      if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
+      if (regionalLayer){ regionalLayer.sublayers.removeAll();regionalLayer.visible = false; }
+
+      let layerAdded = false;
+
+      if (metroImgId !== null && metroImgId !== "null" && metroLayer) {
+        metroLayer.sublayers.add({ id: parseInt(metroImgId), visible: true });
         metroLayer.visible = true;
+        layerAdded = true;
       }
-      if (useRegional && regionalLayer) {
-        regionalLayer.sublayers.add({ id: regImgId, visible: true });
+      if (archiveImgId !== null && archiveImgId !== "null" && archiveLayer) {
+        archiveLayer.sublayers.add({ id: parseInt(archiveImgId), visible: true });
+        archiveLayer.visible = true;
+        layerAdded = true;
+      }
+      if (regImgId !== null && regImgId !== "null" && regionalLayer) {
+        regionalLayer.sublayers.add({ id: parseInt(regImgId), visible: true });
         regionalLayer.visible = true;
+        layerAdded = true;
       }
+
       setStatus(`Showing: ${seasonName}`);
     } else {
-      if (metroLayer) { metroLayer.sublayers.removeAll(); metroLayer.visible = false; }
-      if (regionalLayer) { regionalLayer.sublayers.removeAll(); regionalLayer.visible = false; }
+      if (metroLayer)   { metroLayer.sublayers.removeAll();   metroLayer.visible = false; }
+      if (archiveLayer) { archiveLayer.sublayers.removeAll(); archiveLayer.visible = false; }
+      if (regionalLayer){ regionalLayer.sublayers.removeAll();regionalLayer.visible = false; }
       setStatus("Click a year to view imagery");
     }
   };
