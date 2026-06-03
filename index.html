@@ -271,9 +271,9 @@
       <div id="status-bar">Click a school on the map or search above</div>
       <div id="no-imagery-msg">⚠ No imagery available for this location and year</div>
       <div id="coverage-summary">
-        <div class="cs-title">Imagery Available</div>
-        <div class="cs-row"><span class="cs-label">Years</span><span class="cs-val" id="cs-covered">—</span></div>
-        <div class="cs-row"><span class="cs-label">Total seasons</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
+        <div class="cs-title">Coverage Summary</div>
+        <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
+        <div class="cs-row"><span class="cs-label">Seasons available</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
       </div>
     </div>
   </div>
@@ -396,6 +396,25 @@ require([
     { name: "2010", dot: "winter", metroIdx: 171, regIdx: null, metroImg: 175, regImg: null },
   ]},
 ];
+
+  // ── Coverage Data ─────────────────────────────────────────────────────────
+  let coverageData = { metro: {} };
+
+  fetch("coverage.json")
+    .then(r => r.json())
+    .then(d => { coverageData = d; console.log("Coverage data loaded:", Object.keys(d.metro).length, "metro layers"); })
+    .catch(e => console.warn("Could not load coverage.json:", e));
+
+  // Point-in-bbox check
+  function pointInBbox(lon, lat, bbox) {
+    return lon >= bbox[0] && lon <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
+  }
+
+  function seasonHasCoverage(seasonName, lon, lat) {
+    const bbox = coverageData.metro[seasonName];
+    if (!bbox) return false;
+    return pointInBbox(lon, lat, bbox);
+  }
 
   // ── Auth Setup ────────────────────────────────────────────────────────────
   const PORTAL_URL = "https://www.arcgis.com";
@@ -613,19 +632,26 @@ require([
 
   // ── Coverage Check ────────────────────────────────────────────────────────
   async function checkCoverage(geometry) {
-    document.getElementById("year-loading").classList.remove("visible");
+    document.getElementById("year-loading").classList.add("visible");
     document.getElementById("year-panel").innerHTML = "";
     coverageResults = {};
 
-    // Mark all seasons as covered — we show all years
-    // and handle empty imagery gracefully when user selects a year
+    const lon = geometry.longitude !== undefined ? geometry.longitude : geometry.x;
+    const lat = geometry.latitude  !== undefined ? geometry.latitude  : geometry.y;
+
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
-        if (s.metroIdx !== null) coverageResults[`${s.name}_metro`] = true;
-        if (s.regIdx   !== null) coverageResults[`${s.name}_regional`] = true;
+        if (s.metroIdx !== null) {
+          coverageResults[`${s.name}_metro`] = seasonHasCoverage(s.name, lon, lat);
+        }
+        if (s.regIdx !== null) {
+          // Regional coverage — will be added once we have Regional bbox data
+          coverageResults[`${s.name}_regional`] = false;
+        }
       });
     });
 
+    document.getElementById("year-loading").classList.remove("visible");
     renderYearPanel();
     updateCoverageSummary();
   }
@@ -667,14 +693,15 @@ require([
     panel.innerHTML = "";
 
     YEAR_CONFIG.forEach(yr => {
-      const coveredSeasons = yr.seasons; // show all seasons
+      const coveredSeasons = yr.seasons.filter(s => hasCoverageForSeason(s));
+      if (coveredSeasons.length === 0) return; // skip years with no coverage
 
       const group = document.createElement("div");
       group.className = "year-group";
       group.innerHTML = `
         <div class="year-group-header" onclick="toggleYear(this)">
           <span class="yr">${yr.year}</span>
-          <span class="coverage-badge covered">${yr.seasons.length} season${yr.seasons.length > 1 ? "s" : ""}</span>
+          <span class="coverage-badge covered">${coveredSeasons.length} season${coveredSeasons.length > 1 ? "s" : ""}</span>
         </div>
         <div class="year-seasons">
           ${coveredSeasons.map(s => `
@@ -734,10 +761,15 @@ require([
 
   // ── Coverage Summary ──────────────────────────────────────────────────────
   function updateCoverageSummary() {
-    let total = 0;
-    YEAR_CONFIG.forEach(yr => { total += yr.seasons.length; });
-    document.getElementById("cs-covered").textContent = YEAR_CONFIG.length;
-    document.getElementById("cs-total").textContent   = total + " seasons";
+    let coveredYears = 0, coveredSeasons = 0, totalSeasons = 0;
+    YEAR_CONFIG.forEach(yr => {
+      const covered = yr.seasons.filter(s => hasCoverageForSeason(s));
+      totalSeasons += yr.seasons.length;
+      coveredSeasons += covered.length;
+      if (covered.length > 0) coveredYears++;
+    });
+    document.getElementById("cs-covered").textContent = coveredYears;
+    document.getElementById("cs-total").textContent   = coveredSeasons + " seasons";
     document.getElementById("coverage-summary").classList.add("visible");
   }
 
