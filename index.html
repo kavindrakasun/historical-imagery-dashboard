@@ -696,45 +696,38 @@ require([
   // Build and apply the green/red renderer once coverage data is available.
   // hasCoverage = point falls inside ANY 2025 metro OR regional bbox.
   function applyCoverageRenderer() {
-    const cd = coverageData;
+    // Pre-computed Web Mercator (EPSG:3857) bboxes for 2025 coverage.
+    // These are derived from coverage.json at build time so Arcade doesn't
+    // need to do any coordinate conversion at render time.
+    // Format: [minX, minY, maxX, maxY] in metres.
+    const WM_BBOXES_2025 = [
+      // Metro — Summer 2025
+      [12849853.7, -3888589.6, 12972472.1, -3678912.9],
+      // Metro — Winter 2025 (almost identical, include for completeness)
+      [12850020.7, -3888589.6, 12972472.1, -3678912.9],
+      // Regional 2025 patches
+      [13601917.1, -2036448.3, 13613850.5, -2018876.1],
+      [12805526.3, -3980243.7, 12844310.0, -3963929.6],
+      [12647820.0, -2860816.2, 12664762.8, -2849396.5],
+      [12808064.4, -3566394.4, 12812071.9, -3564289.0],
+      [13806822.9, -4001161.3, 13825123.8, -3989874.7],
+      [12752048.4, -3369754.4, 12782872.8, -3308904.8],
+      [12994569.1, -2358403.7, 13012402.4, -2347790.5],
+      [13210506.6, -2310633.9, 13210551.1, -2310622.0],
+      [12912582.3, -3955894.5, 13110163.2, -3811265.8],
+      [13067694.8, -4129430.5, 13195567.5, -3962180.6]
+    ];
 
-    // Collect all 2025 metro bboxes (any season with "2025" in the name, or metro keys)
-    const metro2025Keys = Object.keys(cd.metro || {}).filter(k => k.includes("2025"));
-    const reg2025Keys   = Object.keys(cd.regional || {}).filter(k => k.includes("2025"));
+    // Build Arcade expression using g.x / g.y (Web Mercator metres)
+    const clauses = WM_BBOXES_2025.map(b =>
+      `($x >= ${b[0]} && $x <= ${b[2]} && $y >= ${b[1]} && $y <= ${b[3]})`
+    );
 
-    // Build Arcade expression: returns 1 if school is in any 2025 coverage bbox
-    // Metro bboxes: [minX, minY, maxX, maxY]
-    let bboxClauses = [];
-
-    metro2025Keys.forEach(k => {
-      const b = cd.metro[k];
-      if (b && b.length === 4) {
-        bboxClauses.push(
-          `($x >= ${b[0]} && $x <= ${b[2]} && $y >= ${b[1]} && $y <= ${b[3]})`
-        );
-      }
-    });
-
-    // Regional 2025 polygons — use rough bounding box per polygon ring group
-    reg2025Keys.forEach(k => {
-      const rings = cd.regional[k];
-      if (!Array.isArray(rings)) return;
-      rings.forEach(ring => {
-        if (!Array.isArray(ring) || ring.length < 3) return;
-        const xs = ring.map(p => p[0]);
-        const ys = ring.map(p => p[1]);
-        const minX = Math.min(...xs), maxX = Math.max(...xs);
-        const minY = Math.min(...ys), maxY = Math.max(...ys);
-        bboxClauses.push(
-          `($x >= ${minX} && $x <= ${maxX} && $y >= ${minY} && $y <= ${maxY})`
-        );
-      });
-    });
-
-    // For point features, geometry.longitude/.latitude gives WGS84 degrees directly
-    const arcadeExpr = bboxClauses.length > 0
-      ? `var g = Geometry($feature);\nvar $x = g.longitude;\nvar $y = g.latitude;\nIIf(${bboxClauses.join(" || ")}, "covered", "nocoverage")`
-      : `"nocoverage"`;
+    const arcadeExpr =
+      `var g = Geometry($feature);\n` +
+      `var $x = g.x;\n` +
+      `var $y = g.y;\n` +
+      `IIf(${clauses.join(" || ")}, "covered", "nocoverage")`;
 
     schoolsLayer.renderer = {
       type: "unique-value",
