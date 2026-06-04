@@ -731,13 +731,21 @@ require([
       });
     });
 
+    // For point features, geometry.longitude/.latitude gives WGS84 degrees directly
     const arcadeExpr = bboxClauses.length > 0
-      ? `var $x = Geometry($feature).x;\nvar $y = Geometry($feature).y;\nIIf(${bboxClauses.join(" || ")}, "covered", "nocoverage")`
+      ? `var g = Geometry($feature);\nvar $x = g.longitude;\nvar $y = g.latitude;\nIIf(${bboxClauses.join(" || ")}, "covered", "nocoverage")`
       : `"nocoverage"`;
 
     schoolsLayer.renderer = {
       type: "unique-value",
       valueExpression: arcadeExpr,
+      defaultSymbol: {
+        type: "simple-marker",
+        color: "#e05c5c",
+        outline: { color: "#fff", width: 1 },
+        size: 8
+      },
+      defaultLabel: "No current imagery",
       uniqueValueInfos: [
         {
           value: "covered",
