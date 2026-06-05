@@ -1,309 +1,19 @@
-
-/
-Claude finished the response
-okay in git hub how can i get he index file which running yesterday morening
-
-12:14
-
-Relevant chats
-Relevant chats
-To get back the index.html that was running yesterday morning, you have a couple of easy options in GitHub:
-
-Option 1 — View commit history (easiest)
-
-Go to your repo: https://github.com/kavindrakasun/historical-imagery-dashboard
-Click on index.html in the file list
-Click the "History" button (top right of the file view)
-You'll see a list of commits with dates — find the one from yesterday morning
-Click that commit to see the file as it was then
-Click the Raw button to see the full code
-Select all → Copy → paste it into your current index.html
-Option 2 — Restore directly via GitHub
-
-Go to your repo main page
-Click the clock/history icon near the top right (or click Commits count)
-Find the commit from yesterday
-Click the <> button on the right of that commit (Browse repository at this point)
-You'll see the full repo as it was at that time — click index.html and copy the content
-Then re-upload:
-
-Go back to your repo main page
-Click index.html → pencil edit icon
-Replace all content with the old version
-Click Commit changes
-Which option would you like to try? Or let me know what you see in your commit history and I can help narrow it down.
-
-
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <title>Historical Imagery Dashboard</title> <!-- ArcGIS JS API 4.x --> <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/
-
-pasted
-
-I reseted the index to this from yesterday
-
-12:21
-Got it! So you've already restored the file from yesterday's version. Is it working correctly now, or are you running into any issues with it?
-
-its working well with no legand but it has the compare tool
-
-12:21
-Good to hear it's working! So you want to add a legend back in. What should the legend show — just the school point colours (green = coverage, red = no coverage), or also the imagery layer types (metro, regional, archive)?
-
-okay
-i need that but later
-Well do differnet changes first
-I want the clear school button just below the Coverage summary
-
-13:30
-Good idea — makes more sense to have it there contextually. I'll move the "Clear School" button from the header down to below the coverage summary panel on the map.
-
-
-Reading current index.html from project
-Reading current index.html from project
-I'll work from the document you pasted since that's the restored version. Let me make the two changes: remove the clear button from the header and add it below the coverage summary.
-
-
-Copy the uploaded index.html to working directory
-Copy the uploaded index.html to working directory
-I'll use the document you pasted (the restored version) as the source. Let me apply the changes directly:
-
-
-Edited 2 files, ran a command
-Edited 2 files, ran a command
-Now update the CSS so the clear button fits nicely inside the summary panel (no longer floating standalone):
-
-
-Edited a file, ran a command, read a file
-Edited a file, ran a command, read a file
-Done! Here's what changed:
-
-Header — clear button removed, now cleaner with just the user badge and logout
-Coverage Summary panel — "✕ Clear School" button now sits at the bottom of the summary, styled in red to signal it's a destructive action
-Upload this to GitHub when ready, and let me know what other changes you'd like!
-
-
-Index
-Code · HTML 
-why did you remove the compare tool ??
-
-14:21
-I didn't remove it! The compare tool is still in the code — I only moved the Clear School button. Nothing else was touched.
-
-Can you check your GitHub Pages URL again? It's possible the file just needs a minute to deploy after uploading. If it's still missing, try a hard refresh (Ctrl+Shift+R) to clear the browser cache.
-
-
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <title>Historical Imagery Dashboard</title> <!-- ArcGIS JS API 4.x --> <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/
-
-pasted
-
-its not there
-
-14:22
-I can see the problem — the file you uploaded to GitHub is missing the compare tool. Looking at the code in document 2, the require() call doesn't include "esri/widgets/Swipe", and all the compare/swipe functions (toggleComparePanel, startCompare, exitCompare, compare button HTML, swipe labels, etc.) are gone.
-
-This happened because when you restored from yesterday's commit, you must have grabbed an older version that didn't have the compare tool yet.
-
-Let me add the compare tool back into this current file:
-
-
-Check uploads directory
-Check uploads directory
-The uploads folder is empty — you pasted the file as text in the chat. I'll reconstruct the correct version by taking the current file (document 2) and adding the compare tool back in. Let me do that now:
-
-Claude's response was interrupted.
-
-index.html
-html
-
-14:23
-Got it, let me work from the uploaded file and add the compare tool back in.
-
-
-Check what compare-related code exists
-Check what compare-related code exists
-Confirmed — no compare code at all. I'll add it all back: the CSS, HTML elements, Swipe widget import, and all the JS functions.
-
-
-Edited 2 files
-Edited 2 files
-Now add esri/widgets/Swipe to the require call:
-
-
-Add Swipe to require imports
-Add Swipe to require imports
-Now add the compare state variables and all compare functions before view.when():
-
-
-Add compare state and functions
-Add compare state and functions
-Now wire up the compare button visibility and currentSeasonName/currentSeasonArgs tracking inside toggleImagery, and update clearSelection:
-
-
-Edited 3 files, ran a command
-Edited 3 files, ran a command
-Everything's in. Let me copy to outputs:
-
-
-Ran a command, read a file
-Ran a command, read a file
-Done! Everything is restored. Here's what this file now has compared to what you uploaded:
-
-✅ Compare tool fully back (CSS, HTML buttons/panel/swipe labels, Swipe widget import, all JS functions)
-✅ Clear School button below the Coverage Summary panel
-✅ Clear School removed from header
-Upload this to GitHub and it should be back to normal!
-
-
-Index
-Code · HTML 
-awesome this is great
-how can i save this file as my main restoration files
-
-14:28
-Good thinking! A few easy options:
-
-Option 1 — Save it in your GitHub repo as a backup file
-
-Go to your repo on GitHub
-Click Add file → Upload files
-Upload this index.html but rename it index_backup.html before uploading
-It sits safely in your repo alongside the main file
-Option 2 — Create a separate branch called backup or stable
-
-In your repo, click the branch dropdown (says main)
-Type stable and click Create branch: stable
-That branch will be a snapshot of your repo at this point in time
-Your live site stays on main, but stable is always there to restore from
-Option 3 — Tag this commit as a release
-
-After uploading the file to GitHub, go to Releases (right side of your repo page)
-Click Create a new release
-Tag it something like v1.0-working
-Attach the index.html file to the release
-It's permanently downloadable from there
-My recommendation: Do Option 1 + Option 3 — keep a index_backup.html in the root of the repo so it's always one click away, and tag it as a release so you have a named restore point. Takes about 2 minutes.
-
-when we use comparing tool the boundary line disapears
-but i need that thats a main point for the app
-
-15:39
-Good catch! The issue is in startCompare() — when compare mode starts, it hides all the normal layers but the highlightLayer (which draws the school boundary) isn't being explicitly kept visible. Let me check and fix it.
-
-
-Ran 2 commands
-Ran 2 commands
-Found the problem. The Swipe widget clips everything — including the highlightLayer — because it only shows leadingLayers on the left and trailingLayers on the right. The fix is to add highlightLayer and schoolsLayer to both leading and trailing so they appear across the full map.
-
-
-Edited a file, ran a command, read a file
-Edited a file, ran a command, read a file
-Fixed! The issue was the Swipe widget was only rendering layers assigned to it — anything not listed just got hidden. By adding highlightLayer and schoolsLayer to both leadingLayers and trailingLayers, they'll now show across the full map on both sides of the swipe. Upload this to GitHub and test it!
-
-
-Index
-Code · HTML 
-the boundary is here when initially school selected but not when i click and select year in comparing tool then boundary disapear
-
-15:53
-The issue is that when startCompare() runs, the Swipe widget takes control of layer rendering and the highlightLayer gets clipped. Adding it to both sides should work — but the problem is likely that the Swipe widget is being created before the highlight layer has a chance to register properly.
-
-Let me check the layer order and fix it:
-
-
-Check full startCompare function
-Check full startCompare function
-I see the real issue — the Swipe widget clips layers by splitting them left/right. highlightLayer being in both lists doesn't fully solve it because the Swipe widget still clips it. The correct fix is to exclude highlightLayer and schoolsLayer from Swipe's control entirely by moving them to the top of the map stack after the swipe layers are added, so they render above the swipe clip region.
-
-
-Edited 3 files, ran a command
-Edited 3 files, ran a command
-Now also fix exitCompare to restore the layer order correctly:
-
-
-Ran 2 commands, edited a file, read a file
-Ran 2 commands, edited a file, read a file
-The fix works by removing schoolsLayer and highlightLayer from the map and re-adding them on top of the swipe imagery layers before the Swipe widget is created. Since the Swipe widget only clips layers assigned to it, anything sitting above in the layer stack renders unclipped across both sides.
-
-Same logic applies in exitCompare — they get re-stacked on top after the compare layers are removed. Upload and test!
-
-
-Index
-Code · HTML 
-okay now in the compare tool
-when I click the yeah it should do the compare instead of click start comparison
-and scrill bar should be there after and you an click another year it should change accoridngly
-
-16:13
-Good idea — much more intuitive flow. So the behaviour should be:
-
-Click a year in the dropdown → compare starts immediately
-Swipe bar appears
-Pick a different year from the dropdown → swipe updates instantly, no button needed
-
-Ran 2 commands
-Ran 2 commands
-Now I have the full picture. I'll refactor the compare panel so: clicking the dropdown triggers compare immediately, the panel stays open so you can switch years, and "Start Comparison" button is removed.
-
-
-Remove Start Comparison button from HTML, keep panel open during compare
-Remove Start Comparison button from HTML, keep panel open during compare
-Remove the #compare-go CSS since the button is gone:
-
-
-Remove compare-go CSS
-Remove compare-go CSS
-Now update toggleComparePanel to always show the panel (no toggle off) and startCompare to keep the panel open and update swipe on dropdown change:
-
-
-Update toggleComparePanel to always open and populate, never close on button click
-Update toggleComparePanel to always open and populate, never close on button click
-Now update startCompare to keep the panel open and remember the swipe position when switching years:
-
-
-Update startCompare to keep panel open, preserve swipe position on year change
-Update startCompare to keep panel open, preserve swipe position on year change
-Also update exitCompare to reset the button text and close the panel properly:
-
-
-Edited a file, ran a command, read a file
-Edited a file, ran a command, read a file
-Done! Here's how it now works:
-
-Click ⇄ Compare Years → panel opens with the dropdown
-Select a year from the dropdown → swipe starts immediately, no button needed
-Change the dropdown to another year → swipe updates instantly, position is preserved
-Click ✕ Exit Compare Mode → swipe closes, normal view restores
-Upload to GitHub and test!
-
-
-Index
-Code · HTML 
-
-
-
-
-
-
-Claude is AI and can make mistakes. Please double-check responses.
-
-
-raw
-Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Historical Imagery Dashboard</title>
- 
+
   <!-- ArcGIS JS API 4.x -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css"/>
   <script src="https://js.arcgis.com/4.29/"></script>
- 
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
- 
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
     :root {
       --bg:        #0f1117;
       --panel:     #181c27;
@@ -318,12 +28,12 @@ Index · HTML
       --danger:    #e05c5c;
       --radius:    10px;
     }
- 
+
     html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
- 
+
     /* ── Layout ── */
     #app { display: flex; flex-direction: column; height: 100vh; }
- 
+
     header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 20px; height: 52px; background: var(--panel);
@@ -331,19 +41,19 @@ Index · HTML
     }
     header h1 { font-family: 'Space Mono', monospace; font-size: 15px; letter-spacing: 1px; color: var(--accent); }
     header .badge { font-size: 11px; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
- 
+
     #main { display: flex; flex: 1; overflow: hidden; }
- 
+
     /* ── Left Panel ── */
     #sidebar {
       width: 310px; flex-shrink: 0; background: var(--panel);
       border-right: 1px solid var(--border);
       display: flex; flex-direction: column; overflow: hidden;
     }
- 
+
     .panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
     .panel-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
- 
+
     /* Search */
     #search-wrap { position: relative; }
     #school-search {
@@ -364,19 +74,19 @@ Index · HTML
     .search-item:last-child { border-bottom: none; }
     .search-item:hover { background: var(--border); }
     .search-item .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
- 
+
     /* School info card */
     #school-card { display: none; }
     #school-card.visible { display: block; }
     .school-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
     .school-meta { font-size: 12px; color: var(--muted); }
- 
+
     /* Year list */
     #year-panel { flex: 1; overflow-y: auto; padding: 0; }
     #year-panel::-webkit-scrollbar { width: 4px; }
     #year-panel::-webkit-scrollbar-track { background: transparent; }
     #year-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
- 
+
     .year-group { border-bottom: 1px solid var(--border); }
     .year-group-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -391,7 +101,7 @@ Index · HTML
     .coverage-badge.covered   { background: rgba(76,175,125,.15); color: var(--success); border: 1px solid rgba(76,175,125,.3); }
     .coverage-badge.checking  { background: rgba(240,168,67,.1);  color: var(--warn);    border: 1px solid rgba(240,168,67,.3); }
     .coverage-badge.nocoverage{ background: rgba(224,92,92,.1);   color: var(--danger);  border: 1px solid rgba(224,92,92,.3); }
- 
+
     .year-seasons { padding: 0 16px 10px 28px; display: none; }
     .year-seasons.open { display: block; }
     .season-item {
@@ -406,7 +116,7 @@ Index · HTML
     .dot.winter { background: var(--accent2); }
     .dot.summer { background: var(--warn); }
     .dot.inset  { background: var(--success); }
- 
+
     /* No school selected state */
     #empty-state {
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -414,7 +124,7 @@ Index · HTML
     }
     #empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .5; }
     #empty-state p { font-size: 13px; line-height: 1.6; }
- 
+
     /* Loading overlay for year panel */
     #year-loading {
       display: none; padding: 30px; text-align: center; color: var(--muted); font-size: 13px;
@@ -426,11 +136,11 @@ Index · HTML
       animation: spin .7s linear infinite; margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
- 
+
     /* ── Map ── */
     #map-wrap { flex: 1; position: relative; }
     #viewDiv { width: 100%; height: 100%; }
- 
+
     /* Status bar */
     #status-bar {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
@@ -438,7 +148,7 @@ Index · HTML
       padding: 6px 16px; font-size: 12px; color: var(--muted);
       pointer-events: none; white-space: nowrap; transition: opacity .3s;
     }
- 
+
     /* Coverage summary pill */
     #coverage-summary {
       position: absolute; top: 10px; left: 10px;
@@ -451,7 +161,7 @@ Index · HTML
     .cs-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
     .cs-row .cs-label { color: var(--muted); }
     .cs-row .cs-val { font-weight: 600; color: var(--success); }
- 
+
     /* Clear button */
     #clear-btn {
       font-size: 11px; color: var(--danger); background: none; border: 1px solid rgba(224,92,92,.4);
@@ -459,7 +169,7 @@ Index · HTML
       font-family: 'DM Sans', sans-serif;
     }
     #clear-btn:hover { border-color: var(--danger); background: rgba(224,92,92,.1); }
- 
+
     /* Active year banner */
     #year-banner {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
@@ -479,7 +189,7 @@ Index · HTML
       color: var(--muted); text-align: center; margin-top: 2px;
       text-transform: uppercase;
     }
- 
+
     /* Compare mode */
     #compare-btn {
       position: absolute; bottom: 50px; right: 16px;
@@ -491,7 +201,7 @@ Index · HTML
     #compare-btn.visible { display: block; }
     #compare-btn:hover { background: var(--accent); color: #fff; }
     #compare-btn.active { background: var(--accent); color: #fff; }
- 
+
     #compare-panel {
       position: absolute; bottom: 90px; right: 16px;
       background: var(--panel); border: 1px solid var(--border);
@@ -503,7 +213,7 @@ Index · HTML
     #compare-select { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; margin-bottom: 8px; }
     #compare-exit { width: 100%; background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 6px; }
     #compare-exit:hover { border-color: var(--danger); color: var(--danger); }
- 
+
     /* Swipe labels */
     .swipe-label {
       position: absolute; top: 60px; background: rgba(15,17,23,.8);
@@ -513,7 +223,7 @@ Index · HTML
     }
     #label-left  { left: 16px; }
     #label-right { right: 16px; }
- 
+
     /* No imagery overlay */
     #no-imagery-msg {
       position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -522,7 +232,7 @@ Index · HTML
       pointer-events: none; white-space: nowrap; display: none; z-index: 10;
     }
     #no-imagery-msg.visible { display: block; }
- 
+
     /* Login overlay */
     #login-overlay {
       position: fixed; inset: 0; background: rgba(10,12,18,.92);
@@ -546,7 +256,7 @@ Index · HTML
     #login-btn:hover { opacity: .85; }
     #login-btn:disabled { opacity: .5; cursor: not-allowed; }
     .login-status { font-size: 12px; color: var(--muted); margin-top: 12px; min-height: 18px; }
- 
+
     /* User badge in header */
     #user-badge { font-size: 11px; color: var(--success); background: rgba(76,175,125,.1); border: 1px solid rgba(76,175,125,.3); border-radius: 20px; padding: 3px 10px; display: none; }
     #user-badge.visible { display: inline-block; }
@@ -563,10 +273,10 @@ Index · HTML
       <span id="user-badge">● Logged in</span>
       <span class="badge">WA Department of Education</span>
       <button id="logout-btn" onclick="doLogout()">↩ Logout</button>
- 
+
     </div>
   </header>
- 
+
   <!-- Login Overlay -->
   <div id="login-overlay">
     <div class="login-box">
@@ -577,11 +287,11 @@ Index · HTML
       <div class="login-status" id="login-status"></div>
     </div>
   </div>
- 
+
   <div id="main">
     <!-- Sidebar -->
     <div id="sidebar">
- 
+
       <!-- Search -->
       <div class="panel-section">
         <div class="panel-label">Search School</div>
@@ -591,25 +301,25 @@ Index · HTML
           <div id="search-results"></div>
         </div>
       </div>
- 
+
       <!-- Selected school card -->
       <div class="panel-section" id="school-card">
         <div class="panel-label">Selected School</div>
         <div class="school-name" id="sc-name">—</div>
         <div class="school-meta" id="sc-meta">—</div>
       </div>
- 
+
       <!-- Year list / empty state -->
       <div id="year-loading"><div class="spinner"></div>Checking imagery coverage…</div>
- 
+
       <div id="empty-state">
         <div class="empty-icon">🛰️</div>
         <p>Search for a school or click one on the map to see available historical imagery years.</p>
       </div>
- 
+
       <div id="year-panel"></div>
     </div>
- 
+
     <!-- Map -->
     <div id="map-wrap">
       <div id="viewDiv"></div>
@@ -633,7 +343,7 @@ Index · HTML
     </div>
   </div>
 </div>
- 
+
 <script>
 require([
   "esri/Map",
@@ -657,17 +367,17 @@ require([
   Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol,
   esriId, OAuthInfo, esriConfig, Swipe
 ) {
- 
+
   // ── Service URLs ──────────────────────────────────────────────────────────
   const SCHOOLS_POINTS_URL   = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Locations_K/FeatureServer/18";
   const SCHOOLS_BOUNDARY_URL = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Sites_K_2/FeatureServer/19";
- 
+
   // SLIP Landgate Imagery MapServers
   const METRO_SERVICE    = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
   const ARCHIVE_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/64081e5c401d4436bd5372bec2af52a3/rest/services/Landgate_Subscription_Imagery/Perth_Metro_Archive/MapServer";
   const REGIONAL_SERVICE  = "https://utility.arcgis.com/usrsvcs/servers/d0516615739e4e2d94a822bd60f6ed35/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
   const REG_ARCHIVE_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/4aee131703a94709b69468078258cb62/rest/services/Landgate_Subscription_Imagery/WA_Regional_Archive/MapServer";
- 
+
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
   // YEAR_CONFIG — real sublayer IDs from Perth Metro MapServer
   // metroIdx = _Index sublayer (for coverage check)
@@ -854,20 +564,20 @@ require([
   { year: 1953, seasons: [{ name: "Regional 1953", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 254 }]},
   { year: 1952, seasons: [{ name: "Regional 1952", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 260 }]},
 ];
- 
+
   // ── Coverage Data ─────────────────────────────────────────────────────────
   let coverageData = { metro: {} };
- 
+
   fetch("coverage.json")
     .then(r => r.json())
     .then(d => { coverageData = d; console.log("Coverage data loaded:", Object.keys(d.metro).length, "metro layers"); })
     .catch(e => console.warn("Could not load coverage.json:", e));
- 
+
   // Point-in-bbox check
   function pointInBbox(lon, lat, bbox) {
     return lon >= bbox[0] && lon <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
   }
- 
+
   // Ray casting point-in-polygon
   function pointInPolygon(lon, lat, ring) {
     let inside = false;
@@ -880,11 +590,11 @@ require([
     }
     return inside;
   }
- 
+
   function pointInAnyPolygon(lon, lat, rings) {
     return rings.some(ring => pointInPolygon(lon, lat, ring));
   }
- 
+
   function seasonHasCoverage(seasonName, lon, lat, source) {
     if (source === 'regional') {
       const rings = coverageData.regional && coverageData.regional[seasonName];
@@ -903,11 +613,11 @@ require([
     if (!bbox) return false;
     return pointInBbox(lon, lat, bbox);
   }
- 
+
   // ── Auth Setup ────────────────────────────────────────────────────────────
   const PORTAL_URL = "https://www.arcgis.com";
   const SLIP_SERVER = "https://utility.arcgis.com";
- 
+
   // Register OAuth — users sign in via arcgis.com which also covers utility.arcgis.com
   const oauthInfo = new OAuthInfo({
     appId: "q9CjEzBAGCo6ia0c",
@@ -915,11 +625,11 @@ require([
     popup: false
   });
   esriId.registerOAuthInfos([oauthInfo]);
- 
+
   // Trust both servers upfront
   esriConfig.request.trustedServers.push("https://utility.arcgis.com");
   esriConfig.request.trustedServers.push("https://www.arcgis.com");
- 
+
   // Check if already signed in
   esriId.checkSignInStatus(PORTAL_URL + "/sharing/rest")
     .then(credential => {
@@ -928,7 +638,7 @@ require([
     .catch(() => {
       // Not signed in — overlay stays visible
     });
- 
+
   window.doLogin = async function() {
     const btn = document.getElementById("login-btn");
     const status = document.getElementById("login-status");
@@ -942,7 +652,7 @@ require([
       btn.disabled = false;
     }
   };
- 
+
   window.doLogout = function() {
     esriId.destroyCredentials();
     document.getElementById("user-badge").classList.remove("visible");
@@ -952,17 +662,17 @@ require([
     document.getElementById("login-btn").disabled = false;
     clearSelection();
   };
- 
+
   function onSignedIn(credential) {
     document.getElementById("login-overlay").classList.add("hidden");
     const username = credential.userId || "Signed in";
     document.getElementById("user-badge").textContent = "● " + username;
     document.getElementById("user-badge").classList.add("visible");
     document.getElementById("logout-btn").classList.add("visible");
- 
+
     // Register the SLIP server so the JS API forwards credentials to it
     esriConfig.request.trustedServers.push("https://utility.arcgis.com");
- 
+
     // Also register credential directly for the SLIP server
     esriId.registerToken({
       server: "https://utility.arcgis.com/sharing/rest",
@@ -971,15 +681,15 @@ require([
       ssl: true
     });
   }
- 
+
   // ── Map Setup ─────────────────────────────────────────────────────────────
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
- 
+
   const metroLayer = new MapImageLayer({ 
     url: METRO_SERVICE, title: "Perth Metro Imagery", sublayers: [], visible: false 
   });
   metroLayer.load().catch(() => console.warn("Metro layer failed to load"));
- 
+
   const archiveLayer = new MapImageLayer({
     url: ARCHIVE_SERVICE, title: "Perth Metro Archive Imagery", sublayers: [], visible: false
   });
@@ -988,12 +698,12 @@ require([
     url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false 
   });
   regionalLayer.load().catch(() => console.warn("Regional layer failed to load"));
- 
+
   const regArchiveLayer = new MapImageLayer({
     url: REG_ARCHIVE_SERVICE, title: "Regional WA Archive Imagery", sublayers: [], visible: false
   });
   regArchiveLayer.load().catch(() => console.warn("Regional Archive layer failed to load"));
- 
+
   const schoolsLayer = new FeatureLayer({
     url: SCHOOLS_POINTS_URL,
     title: "Schools",
@@ -1003,24 +713,24 @@ require([
       symbol: { type: "simple-marker", color: "#7c6af7", outline: { color: "#fff", width: 1 }, size: 8 }
     }
   });
- 
+
   const map = new Map({
     basemap: "dark-gray-vector",
     layers: [regionalLayer, regArchiveLayer, metroLayer, archiveLayer, schoolsLayer, highlightLayer].filter(Boolean)
   });
- 
+
   const view = new MapView({
     container: "viewDiv",
     map,
     center: [117.0, -28.5],
     zoom: 6
   });
- 
+
   // ── State ─────────────────────────────────────────────────────────────────
   let selectedSchool   = null;
   let activeImageSublayers = [];   // currently visible imagery sublayers
   let coverageResults  = {};       // { seasonName: bool }
- 
+
   // ── School Click on Map ───────────────────────────────────────────────────
   view.on("click", async (evt) => {
     const hitResult = await view.hitTest(evt, { include: [schoolsLayer] });
@@ -1029,23 +739,23 @@ require([
       selectSchool(graphic);
     }
   });
- 
+
   // ── Search ────────────────────────────────────────────────────────────────
   const searchInput   = document.getElementById("school-search");
   const searchResults = document.getElementById("search-results");
   let searchTimer;
- 
+
   searchInput.addEventListener("input", () => {
     clearTimeout(searchTimer);
     const val = searchInput.value.trim();
     if (val.length < 2) { searchResults.classList.remove("open"); return; }
     searchTimer = setTimeout(() => doSearch(val), 300);
   });
- 
+
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#search-wrap")) searchResults.classList.remove("open");
   });
- 
+
   async function doSearch(term) {
     const q = new Query({
       where: `School_Name LIKE '%${term.toUpperCase()}%'`,
@@ -1056,7 +766,7 @@ require([
       renderSearchResults(result.features);
     } catch(e) { console.warn("Search error", e); }
   }
- 
+
   function renderSearchResults(features) {
     searchResults.innerHTML = "";
     if (!features.length) {
@@ -1077,7 +787,7 @@ require([
     }
     searchResults.classList.add("open");
   }
- 
+
   // ── Select School ─────────────────────────────────────────────────────────
   async function selectSchool(graphic) {
     selectedSchool = graphic;
@@ -1085,24 +795,24 @@ require([
     const name  = attrs.School_Name || "Unknown School";
     const suburb = attrs.Broad_Classification || "";
     const region = attrs.Location_Code || "";
- 
+
     // Update card
     document.getElementById("sc-name").textContent = name;
     document.getElementById("sc-meta").textContent = [suburb, region].filter(Boolean).join(" · ");
     document.getElementById("school-card").classList.add("visible");
     document.getElementById("empty-state").style.display = "none";
- 
+
     // Zoom
     view.goTo({ target: graphic.geometry, zoom: 16 });
- 
+
     // Highlight boundary
     highlightLayer.removeAll();
     await fetchAndHighlightBoundary(name, graphic.geometry);
- 
+
     // Check coverage
     await checkCoverage(graphic.geometry);
   }
- 
+
   async function fetchAndHighlightBoundary(schoolName, fallbackPoint) {
     try {
       const q = new Query({
@@ -1128,16 +838,16 @@ require([
       }));
     }
   }
- 
+
   // ── Coverage Check ────────────────────────────────────────────────────────
   async function checkCoverage(geometry) {
     document.getElementById("year-loading").classList.add("visible");
     document.getElementById("year-panel").innerHTML = "";
     coverageResults = {};
- 
+
     const lon = geometry.longitude !== undefined ? geometry.longitude : geometry.x;
     const lat = geometry.latitude  !== undefined ? geometry.latitude  : geometry.y;
- 
+
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
         if (s.metroIdx !== null) {
@@ -1154,12 +864,12 @@ require([
         }
       });
     });
- 
+
     document.getElementById("year-loading").classList.remove("visible");
     renderYearPanel();
     updateCoverageSummary();
   }
- 
+
   async function checkIndex(serviceUrl, sublayerId, geometry, seasonName, source) {
     const layerUrl = `${serviceUrl}/${sublayerId}`;
     const q = new Query({
@@ -1184,7 +894,7 @@ require([
       }
     }
   }
- 
+
   function hasCoverageForSeason(s) {
     const metro      = s.metroIdx    !== null ? coverageResults[`${s.name}_metro`]       : false;
     const archive    = s.archiveIdx  !== null ? coverageResults[`${s.name}_archive`]     : false;
@@ -1194,16 +904,16 @@ require([
                        ? coverageResults[`${s.name}_reg_archive`] : false;
     return metro || regional || archive || regArchive;
   }
- 
+
   // ── Render Year Panel ─────────────────────────────────────────────────────
   function renderYearPanel() {
     const panel = document.getElementById("year-panel");
     panel.innerHTML = "";
- 
+
     YEAR_CONFIG.forEach(yr => {
       const coveredSeasons = yr.seasons.filter(s => hasCoverageForSeason(s));
       if (coveredSeasons.length === 0) return; // skip years with no coverage
- 
+
       const group = document.createElement("div");
       group.className = "year-group";
       group.innerHTML = `
@@ -1222,40 +932,40 @@ require([
         </div>`;
       panel.appendChild(group);
     });
- 
+
     if (panel.innerHTML === "") {
       panel.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">
         No imagery coverage found for this school location.</div>`;
     }
   }
- 
+
   // ── Toggle Year Expand ────────────────────────────────────────────────────
   window.toggleYear = function(header) {
     const seasons = header.nextElementSibling;
     seasons.classList.toggle("open");
   };
- 
+
   // ── Toggle Imagery Layer ──────────────────────────────────────────────────
   // Track current imagery check timer
   let imageryCheckTimer = null;
- 
+
   window.toggleImagery = function(checkbox, seasonName, metroImgId, regImgId, archiveImgId) {
     const noImgMsg = document.getElementById("no-imagery-msg");
     if (imageryCheckTimer) { clearTimeout(imageryCheckTimer); imageryCheckTimer = null; }
     noImgMsg.classList.remove("visible");
- 
+
     if (checkbox.checked) {
       document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => {
         if (cb !== checkbox) { cb.checked = false; }
       });
- 
+
       if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
       if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
       if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
       if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
- 
+
       let layerAdded = false;
- 
+
       if (metroImgId !== null && metroImgId !== "null" && metroLayer) {
         metroLayer.sublayers.add({ id: parseInt(metroImgId), visible: true });
         metroLayer.visible = true;
@@ -1277,7 +987,7 @@ require([
         regArchiveLayer.visible = true;
         layerAdded = true;
       }
- 
+
       // Show loading state in banner immediately
       const banner = document.getElementById("year-banner");
       const bannerText = document.getElementById("year-banner-text");
@@ -1285,7 +995,7 @@ require([
       const yearMatch = seasonName.match(/\d{4}/);
       const yearNum = yearMatch ? yearMatch[0] : seasonName;
       const seasonPart = seasonName.replace(yearNum, "").trim();
- 
+
       // Show a loading state first
       bannerText.textContent = "...";
       bannerSeason.textContent = "Loading";
@@ -1302,13 +1012,13 @@ require([
       ];
       document.getElementById("compare-btn").classList.add("visible");
       setStatus(`Loading ${seasonName}…`);
- 
+
       // Wait for imagery to actually render then update banner
       const activeLayer = metroImgId !== null && metroImgId !== "null" && metroLayer ? metroLayer
                         : archiveImgId !== null && archiveImgId !== "null" && archiveLayer ? archiveLayer
                         : regImgId !== null && regImgId !== "null" && regionalLayer ? regionalLayer
                         : regArchiveLayer;
- 
+
       if (activeLayer) {
         view.whenLayerView(activeLayer).then(lv => {
           // Poll updating state
@@ -1352,7 +1062,7 @@ require([
       setStatus("Click a year to view imagery");
     }
   };
- 
+
   // ── Coverage Summary ──────────────────────────────────────────────────────
   function updateCoverageSummary() {
     let coveredYears = 0, coveredSeasons = 0, totalSeasons = 0;
@@ -1366,7 +1076,7 @@ require([
     document.getElementById("cs-total").textContent   = coveredSeasons + " seasons";
     document.getElementById("coverage-summary").classList.add("visible");
   }
- 
+
   // ── Clear ─────────────────────────────────────────────────────────────────
   window.clearSelection = function() {
     selectedSchool = null;
@@ -1391,18 +1101,18 @@ require([
     setStatus("Click a school on the map or search above");
     view.goTo({ center: [117.0, -28.5], zoom: 6 });
   };
- 
+
   function setStatus(msg) {
     document.getElementById("status-bar").textContent = msg;
   }
- 
+
   // ── Compare / Swipe ───────────────────────────────────────────────────────
   let swipeWidget = null;
   let compareLayerLeading = null;
   let compareLayerTrailing = null;
   let currentSeasonName = null;
   let currentSeasonArgs = null;
- 
+
   window.toggleComparePanel = function() {
     const btn = document.getElementById("compare-btn");
     const panel = document.getElementById("compare-panel");
@@ -1410,7 +1120,7 @@ require([
     btn.classList.add("active");
     populateCompareDropdown();
   };
- 
+
   function populateCompareDropdown() {
     const select = document.getElementById("compare-select");
     select.innerHTML = '<option value="">Select year to compare...</option>';
@@ -1429,42 +1139,42 @@ require([
       });
     });
   }
- 
+
   window.startCompare = function() {
     const select = document.getElementById("compare-select");
     const opt = select.options[select.selectedIndex];
     if (!opt || !opt.value) return;
- 
+
     const compareName = opt.value;
     const cMetro   = opt.dataset.metroImg;
     const cReg     = opt.dataset.regImg;
     const cArchive = opt.dataset.archiveImg;
     const cRegArch = opt.dataset.regArchiveImg;
- 
+
     // Preserve swipe position if already comparing
     const savedPosition = swipeWidget ? swipeWidget.position : 50;
- 
+
     if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
     if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
     if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
- 
+
     compareLayerLeading  = createImageLayer(currentSeasonArgs, "leading");
     compareLayerTrailing = createImageLayer([cMetro, cReg, cArchive, cRegArch], "trailing");
- 
+
     // Remove schools + highlight so we can re-add them on top of swipe layers
     map.remove(schoolsLayer);
     map.remove(highlightLayer);
- 
+
     map.addMany([compareLayerLeading, compareLayerTrailing]);
- 
+
     // Re-add on top so they render above the swipe clip region
     map.addMany([schoolsLayer, highlightLayer]);
- 
+
     if (metroLayer)      metroLayer.visible      = false;
     if (archiveLayer)    archiveLayer.visible     = false;
     if (regionalLayer)   regionalLayer.visible    = false;
     if (regArchiveLayer) regArchiveLayer.visible  = false;
- 
+
     swipeWidget = new Swipe({
       view,
       leadingLayers:  [compareLayerLeading],
@@ -1473,17 +1183,17 @@ require([
       direction: "horizontal"
     });
     view.ui.add(swipeWidget);
- 
+
     document.getElementById("label-left").textContent  = currentSeasonName;
     document.getElementById("label-right").textContent = compareName;
     document.getElementById("label-left").style.display  = "block";
     document.getElementById("label-right").style.display = "block";
- 
+
     // Keep panel open so user can switch years
     document.getElementById("compare-btn").textContent = "⇄ Comparing";
     setStatus(`Comparing: ${currentSeasonName} ↔ ${compareName}`);
   };
- 
+
   function createImageLayer(args, role) {
     const [metroImg, regImg, archiveImg, regArchiveImg] = args;
     const layer = new MapImageLayer({ sublayers: [], visible: true, opacity: 1 });
@@ -1502,24 +1212,24 @@ require([
     }
     return layer;
   }
- 
+
   window.exitCompare = function() {
     if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
     if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
     if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
- 
+
     // Ensure schools + highlight are back on top
     map.remove(schoolsLayer);
     map.remove(highlightLayer);
     map.addMany([schoolsLayer, highlightLayer]);
- 
+
     document.getElementById("label-left").style.display  = "none";
     document.getElementById("label-right").style.display = "none";
     document.getElementById("compare-btn").textContent = "⇄ Compare Years";
     document.getElementById("compare-btn").classList.remove("active");
     document.getElementById("compare-panel").classList.remove("visible");
     document.getElementById("compare-select").value = "";
- 
+
     if (currentSeasonArgs) {
       const [metroImg, regImg, archiveImg, regArchiveImg] = currentSeasonArgs;
       if (metroImg && metroImg !== "null" && metroLayer) {
@@ -1542,22 +1252,10 @@ require([
     }
     setStatus(`Showing: ${currentSeasonName}`);
   };
- 
+
   view.when(() => setStatus("Map ready — search or click a school"));
- 
+
 }); // end require
 </script>
 </body>
 </html>
- 
-
-
-
-
-
-
-
-
-
-
-
