@@ -1,19 +1,75 @@
+
+All projects
+Historical Imagery App
+For Education Dep for Historical filter view
+
+
+
+How can I help you today?
+
+
+Granting team member web page access
+Last message 2 hours ago
+Historical imagery coverage by school location
+Last message yesterday
+Memory
+Only you
+Project memory will show here after a few chats.
+
+Instructions
+Add instructions to tailor Claude’s responses
+
+Files
+20% of project capacity used
+Search mode
+
+coverage.json
+1 line
+
+json
+
+
+
+index.html
+1,053 lines
+
+html
+
+
+
+extract_coverage.js
+155 lines
+
+js
+
+
+
+README.md
+103 lines
+
+md
+
+
+index.html
+
+
+raw
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Historical Imagery Dashboard</title>
-
+ 
   <!-- ArcGIS JS API 4.x -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css"/>
   <script src="https://js.arcgis.com/4.29/"></script>
-
+ 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
-
+ 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
     :root {
       --bg:        #0f1117;
       --panel:     #181c27;
@@ -28,12 +84,12 @@
       --danger:    #e05c5c;
       --radius:    10px;
     }
-
+ 
     html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
-
+ 
     /* ── Layout ── */
     #app { display: flex; flex-direction: column; height: 100vh; }
-
+ 
     header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 20px; height: 52px; background: var(--panel);
@@ -41,19 +97,19 @@
     }
     header h1 { font-family: 'Space Mono', monospace; font-size: 15px; letter-spacing: 1px; color: var(--accent); }
     header .badge { font-size: 11px; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
-
+ 
     #main { display: flex; flex: 1; overflow: hidden; }
-
+ 
     /* ── Left Panel ── */
     #sidebar {
       width: 310px; flex-shrink: 0; background: var(--panel);
       border-right: 1px solid var(--border);
       display: flex; flex-direction: column; overflow: hidden;
     }
-
+ 
     .panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
     .panel-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-
+ 
     /* Search */
     #search-wrap { position: relative; }
     #school-search {
@@ -74,19 +130,19 @@
     .search-item:last-child { border-bottom: none; }
     .search-item:hover { background: var(--border); }
     .search-item .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
+ 
     /* School info card */
     #school-card { display: none; }
     #school-card.visible { display: block; }
     .school-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
     .school-meta { font-size: 12px; color: var(--muted); }
-
+ 
     /* Year list */
     #year-panel { flex: 1; overflow-y: auto; padding: 0; }
     #year-panel::-webkit-scrollbar { width: 4px; }
     #year-panel::-webkit-scrollbar-track { background: transparent; }
     #year-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
+ 
     .year-group { border-bottom: 1px solid var(--border); }
     .year-group-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -101,7 +157,7 @@
     .coverage-badge.covered   { background: rgba(76,175,125,.15); color: var(--success); border: 1px solid rgba(76,175,125,.3); }
     .coverage-badge.checking  { background: rgba(240,168,67,.1);  color: var(--warn);    border: 1px solid rgba(240,168,67,.3); }
     .coverage-badge.nocoverage{ background: rgba(224,92,92,.1);   color: var(--danger);  border: 1px solid rgba(224,92,92,.3); }
-
+ 
     .year-seasons { padding: 0 16px 10px 28px; display: none; }
     .year-seasons.open { display: block; }
     .season-item {
@@ -116,7 +172,7 @@
     .dot.winter { background: var(--accent2); }
     .dot.summer { background: var(--warn); }
     .dot.inset  { background: var(--success); }
-
+ 
     /* No school selected state */
     #empty-state {
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -124,7 +180,7 @@
     }
     #empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .5; }
     #empty-state p { font-size: 13px; line-height: 1.6; }
-
+ 
     /* Loading overlay for year panel */
     #year-loading {
       display: none; padding: 30px; text-align: center; color: var(--muted); font-size: 13px;
@@ -136,11 +192,11 @@
       animation: spin .7s linear infinite; margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
     /* ── Map ── */
     #map-wrap { flex: 1; position: relative; }
     #viewDiv { width: 100%; height: 100%; }
-
+ 
     /* Status bar */
     #status-bar {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
@@ -148,19 +204,7 @@
       padding: 6px 16px; font-size: 12px; color: var(--muted);
       pointer-events: none; white-space: nowrap; transition: opacity .3s;
     }
-
-    /* Map legend */
-    #map-legend {
-      position: absolute; bottom: 42px; right: 10px;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 10px 14px;
-      font-size: 12px; z-index: 10; min-width: 190px;
-    }
-    #map-legend .legend-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--text); }
-    .legend-item:last-child { margin-bottom: 0; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.4); }
-
+ 
     /* Coverage summary pill */
     #coverage-summary {
       position: absolute; top: 10px; left: 10px;
@@ -173,14 +217,14 @@
     .cs-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
     .cs-row .cs-label { color: var(--muted); }
     .cs-row .cs-val { font-weight: 600; color: var(--success); }
-
+ 
     /* Clear button */
     #clear-btn {
       font-size: 11px; color: var(--muted); background: none; border: 1px solid var(--border);
       border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s;
     }
     #clear-btn:hover { border-color: var(--accent); color: var(--accent); }
-
+ 
     /* Active year banner */
     #year-banner {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
@@ -200,41 +244,7 @@
       color: var(--muted); text-align: center; margin-top: 2px;
       text-transform: uppercase;
     }
-
-    /* Compare mode */
-    #compare-btn {
-      position: absolute; bottom: 50px; right: 16px;
-      background: var(--panel); border: 1px solid var(--accent);
-      color: var(--accent); border-radius: 8px; padding: 8px 16px;
-      font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 600;
-      cursor: pointer; display: none; z-index: 10; transition: all .2s;
-    }
-    #compare-btn.visible { display: block; }
-    #compare-btn:hover, #compare-btn.active { background: var(--accent); color: #fff; }
-
-    #compare-panel {
-      position: absolute; bottom: 90px; right: 16px;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px; z-index: 10;
-      display: none; min-width: 220px;
-    }
-    #compare-panel.visible { display: block; }
-    #compare-panel .cp-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-    #compare-select { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; margin-bottom: 8px; }
-    #compare-go { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-    #compare-go:hover { opacity: .85; }
-    #compare-exit { width: 100%; background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 6px; }
-    #compare-exit:hover { border-color: var(--danger); color: var(--danger); }
-
-    .swipe-label {
-      position: absolute; top: 60px; background: rgba(15,17,23,.8);
-      border: 1px solid var(--border); border-radius: 6px;
-      padding: 4px 12px; font-size: 11px; font-family: 'Space Mono', monospace;
-      color: var(--accent2); pointer-events: none; z-index: 5;
-    }
-    #label-left  { left: 16px; }
-    #label-right { right: 16px; }
-
+ 
     /* No imagery overlay */
     #no-imagery-msg {
       position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -243,7 +253,7 @@
       pointer-events: none; white-space: nowrap; display: none; z-index: 10;
     }
     #no-imagery-msg.visible { display: block; }
-
+ 
     /* Login overlay */
     #login-overlay {
       position: fixed; inset: 0; background: rgba(10,12,18,.92);
@@ -267,7 +277,7 @@
     #login-btn:hover { opacity: .85; }
     #login-btn:disabled { opacity: .5; cursor: not-allowed; }
     .login-status { font-size: 12px; color: var(--muted); margin-top: 12px; min-height: 18px; }
-
+ 
     /* User badge in header */
     #user-badge { font-size: 11px; color: var(--success); background: rgba(76,175,125,.1); border: 1px solid rgba(76,175,125,.3); border-radius: 20px; padding: 3px 10px; display: none; }
     #user-badge.visible { display: inline-block; }
@@ -287,7 +297,7 @@
       <button id="clear-btn" onclick="clearSelection()">✕ Clear School</button>
     </div>
   </header>
-
+ 
   <!-- Login Overlay -->
   <div id="login-overlay">
     <div class="login-box">
@@ -298,11 +308,11 @@
       <div class="login-status" id="login-status"></div>
     </div>
   </div>
-
+ 
   <div id="main">
     <!-- Sidebar -->
     <div id="sidebar">
-
+ 
       <!-- Search -->
       <div class="panel-section">
         <div class="panel-label">Search School</div>
@@ -312,45 +322,31 @@
           <div id="search-results"></div>
         </div>
       </div>
-
+ 
       <!-- Selected school card -->
       <div class="panel-section" id="school-card">
         <div class="panel-label">Selected School</div>
         <div class="school-name" id="sc-name">—</div>
         <div class="school-meta" id="sc-meta">—</div>
       </div>
-
+ 
       <!-- Year list / empty state -->
       <div id="year-loading"><div class="spinner"></div>Checking imagery coverage…</div>
-
+ 
       <div id="empty-state">
         <div class="empty-icon">🛰️</div>
         <p>Search for a school or click one on the map to see available historical imagery years.</p>
       </div>
-
+ 
       <div id="year-panel"></div>
     </div>
-
+ 
     <!-- Map -->
     <div id="map-wrap">
       <div id="viewDiv"></div>
       <div id="status-bar">Click a school on the map or search above</div>
       <div id="no-imagery-msg">⚠ No imagery available for this location and year</div>
       <div id="year-banner"><span id="year-banner-text">—</span><span class="season-label" id="year-banner-season"></span></div>
-      <div class="swipe-label" id="label-left" style="display:none"></div>
-      <div class="swipe-label" id="label-right" style="display:none"></div>
-      <button id="compare-btn" onclick="toggleComparePanel()">⇄ Compare Years</button>
-      <div id="compare-panel">
-        <div class="cp-title">Compare with another year</div>
-        <select id="compare-select"><option value="">Select year...</option></select>
-        <button id="compare-go" onclick="startCompare()">Start Comparison</button>
-        <button id="compare-exit" onclick="exitCompare()">✕ Exit Compare Mode</button>
-      </div>
-      <div id="map-legend">
-        <div class="legend-title">School Coverage</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#4caf7d"></span>Current imagery available</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#e05c5c"></span>No current imagery</div>
-      </div>
       <div id="coverage-summary">
         <div class="cs-title">Coverage Summary</div>
         <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
@@ -359,7 +355,7 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 require([
   "esri/Map",
@@ -375,25 +371,24 @@ require([
   "esri/symbols/SimpleMarkerSymbol",
   "esri/identity/IdentityManager",
   "esri/identity/OAuthInfo",
-  "esri/config",
-  "esri/widgets/Swipe"
+  "esri/config"
 ], function(
   Map, MapView, MapImageLayer, FeatureLayer,
   queryRest, Query, geometryEngine,
   Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol,
-  esriId, OAuthInfo, esriConfig, Swipe
+  esriId, OAuthInfo, esriConfig
 ) {
-
+ 
   // ── Service URLs ──────────────────────────────────────────────────────────
   const SCHOOLS_POINTS_URL   = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Locations_K/FeatureServer/18";
   const SCHOOLS_BOUNDARY_URL = "https://services6.arcgis.com/YOuXtMrS3bJlKpYE/arcgis/rest/services/School_Sites_K_2/FeatureServer/19";
-
+ 
   // SLIP Landgate Imagery MapServers
   const METRO_SERVICE    = "https://utility.arcgis.com/usrsvcs/servers/d3c84496e75e42f5bd832dd61374698f/rest/services/Landgate_Subscription_Imagery/Perth_Metro/MapServer";
   const ARCHIVE_SERVICE   = "https://utility.arcgis.com/usrsvcs/servers/64081e5c401d4436bd5372bec2af52a3/rest/services/Landgate_Subscription_Imagery/Perth_Metro_Archive/MapServer";
   const REGIONAL_SERVICE  = "https://utility.arcgis.com/usrsvcs/servers/d0516615739e4e2d94a822bd60f6ed35/rest/services/Landgate_Subscription_Imagery/WA_Regional/MapServer";
   const REG_ARCHIVE_SERVICE = "https://utility.arcgis.com/usrsvcs/servers/4aee131703a94709b69468078258cb62/rest/services/Landgate_Subscription_Imagery/WA_Regional_Archive/MapServer";
-
+ 
   // Year → sublayer IDs for Index layers (adjust to match your actual service sublayer IDs)
   // YEAR_CONFIG — real sublayer IDs from Perth Metro MapServer
   // metroIdx = _Index sublayer (for coverage check)
@@ -580,24 +575,20 @@ require([
   { year: 1953, seasons: [{ name: "Regional 1953", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 254 }]},
   { year: 1952, seasons: [{ name: "Regional 1952", dot: "inset", metroIdx: null, regIdx: null, archiveIdx: null, metroImg: null, regImg: null, archiveImg: null, regArchiveImg: 260 }]},
 ];
-
+ 
   // ── Coverage Data ─────────────────────────────────────────────────────────
   let coverageData = { metro: {} };
-
+ 
   fetch("coverage.json")
     .then(r => r.json())
-    .then(d => {
-      coverageData = d;
-      console.log("Coverage data loaded:", Object.keys(d.metro).length, "metro layers");
-      applyCoverageRenderer();
-    })
+    .then(d => { coverageData = d; console.log("Coverage data loaded:", Object.keys(d.metro).length, "metro layers"); })
     .catch(e => console.warn("Could not load coverage.json:", e));
-
+ 
   // Point-in-bbox check
   function pointInBbox(lon, lat, bbox) {
     return lon >= bbox[0] && lon <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
   }
-
+ 
   // Ray casting point-in-polygon
   function pointInPolygon(lon, lat, ring) {
     let inside = false;
@@ -610,11 +601,11 @@ require([
     }
     return inside;
   }
-
+ 
   function pointInAnyPolygon(lon, lat, rings) {
     return rings.some(ring => pointInPolygon(lon, lat, ring));
   }
-
+ 
   function seasonHasCoverage(seasonName, lon, lat, source) {
     if (source === 'regional') {
       const rings = coverageData.regional && coverageData.regional[seasonName];
@@ -633,11 +624,11 @@ require([
     if (!bbox) return false;
     return pointInBbox(lon, lat, bbox);
   }
-
+ 
   // ── Auth Setup ────────────────────────────────────────────────────────────
   const PORTAL_URL = "https://www.arcgis.com";
   const SLIP_SERVER = "https://utility.arcgis.com";
-
+ 
   // Register OAuth — users sign in via arcgis.com which also covers utility.arcgis.com
   const oauthInfo = new OAuthInfo({
     appId: "q9CjEzBAGCo6ia0c",
@@ -645,11 +636,11 @@ require([
     popup: false
   });
   esriId.registerOAuthInfos([oauthInfo]);
-
+ 
   // Trust both servers upfront
   esriConfig.request.trustedServers.push("https://utility.arcgis.com");
   esriConfig.request.trustedServers.push("https://www.arcgis.com");
-
+ 
   // Check if already signed in
   esriId.checkSignInStatus(PORTAL_URL + "/sharing/rest")
     .then(credential => {
@@ -658,7 +649,7 @@ require([
     .catch(() => {
       // Not signed in — overlay stays visible
     });
-
+ 
   window.doLogin = async function() {
     const btn = document.getElementById("login-btn");
     const status = document.getElementById("login-status");
@@ -666,14 +657,13 @@ require([
     status.textContent = "Opening sign-in window…";
     try {
       const credential = await esriId.getCredential(PORTAL_URL + "/sharing/rest");
-      status.textContent = "Verifying access…";
-      await onSignedIn(credential);
+      onSignedIn(credential);
     } catch(e) {
       status.textContent = "Sign-in cancelled or failed. Please try again.";
       btn.disabled = false;
     }
   };
-
+ 
   window.doLogout = function() {
     esriId.destroyCredentials();
     document.getElementById("user-badge").classList.remove("visible");
@@ -683,49 +673,17 @@ require([
     document.getElementById("login-btn").disabled = false;
     clearSelection();
   };
-
-  // ── Access Control ────────────────────────────────────────────────────────
-  // Set your ArcGIS organisation ID here.
-  // Find it: ArcGIS Online → Organisation → Settings → look for "Organisation ID"
-  // Or visit: https://www.arcgis.com/sharing/rest/portals/self?f=json after login
-  const ALLOWED_ORG_ID = "YOuXtMrS3bJlKpYE"; // ← replace with your real org ID
-
-  async function checkOrgAccess(credential) {
-    try {
-      const resp = await fetch(
-        `${PORTAL_URL}/sharing/rest/community/self?f=json&token=${credential.token}`
-      );
-      const profile = await resp.json();
-      const userOrgId = profile.orgId;
-      if (!userOrgId || userOrgId !== ALLOWED_ORG_ID) {
-        // Wrong org — sign them out and show error
-        esriId.destroyCredentials();
-        document.getElementById("login-status").textContent =
-          "Access denied: your account is not part of the authorised organisation.";
-        document.getElementById("login-btn").disabled = false;
-        return false;
-      }
-      return true;
-    } catch(e) {
-      document.getElementById("login-status").textContent =
-        "Could not verify account. Please try again.";
-      document.getElementById("login-btn").disabled = false;
-      return false;
-    }
-  }
-
-  async function onSignedIn(credential) {
-    const allowed = await checkOrgAccess(credential);
-    if (!allowed) return; // access denied — checkOrgAccess already showed error
+ 
+  function onSignedIn(credential) {
     document.getElementById("login-overlay").classList.add("hidden");
     const username = credential.userId || "Signed in";
     document.getElementById("user-badge").textContent = "● " + username;
     document.getElementById("user-badge").classList.add("visible");
     document.getElementById("logout-btn").classList.add("visible");
-
+ 
     // Register the SLIP server so the JS API forwards credentials to it
     esriConfig.request.trustedServers.push("https://utility.arcgis.com");
-
+ 
     // Also register credential directly for the SLIP server
     esriId.registerToken({
       server: "https://utility.arcgis.com/sharing/rest",
@@ -734,15 +692,15 @@ require([
       ssl: true
     });
   }
-
+ 
   // ── Map Setup ─────────────────────────────────────────────────────────────
   const highlightLayer = new GraphicsLayer({ title: "Selection" });
-
+ 
   const metroLayer = new MapImageLayer({ 
     url: METRO_SERVICE, title: "Perth Metro Imagery", sublayers: [], visible: false 
   });
   metroLayer.load().catch(() => console.warn("Metro layer failed to load"));
-
+ 
   const archiveLayer = new MapImageLayer({
     url: ARCHIVE_SERVICE, title: "Perth Metro Archive Imagery", sublayers: [], visible: false
   });
@@ -751,15 +709,12 @@ require([
     url: REGIONAL_SERVICE, title: "Regional WA Imagery", sublayers: [], visible: false 
   });
   regionalLayer.load().catch(() => console.warn("Regional layer failed to load"));
-
+ 
   const regArchiveLayer = new MapImageLayer({
     url: REG_ARCHIVE_SERVICE, title: "Regional WA Archive Imagery", sublayers: [], visible: false
   });
   regArchiveLayer.load().catch(() => console.warn("Regional Archive layer failed to load"));
-
-  // ── Coverage-aware school renderer ───────────────────────────────────────
-  // Applied after coverage.json loads so we have the 2025 bboxes available.
-  // Default: all purple until coverage data arrives, then green/red.
+ 
   const schoolsLayer = new FeatureLayer({
     url: SCHOOLS_POINTS_URL,
     title: "Schools",
@@ -769,93 +724,24 @@ require([
       symbol: { type: "simple-marker", color: "#7c6af7", outline: { color: "#fff", width: 1 }, size: 8 }
     }
   });
-
-  // Build and apply the green/red renderer once coverage data is available.
-  // hasCoverage = point falls inside ANY 2025 metro OR regional bbox.
-  function applyCoverageRenderer() {
-    // Pre-computed Web Mercator (EPSG:3857) bboxes for 2025 coverage.
-    // These are derived from coverage.json at build time so Arcade doesn't
-    // need to do any coordinate conversion at render time.
-    // Format: [minX, minY, maxX, maxY] in metres.
-    const WM_BBOXES_2025 = [
-      // Metro — Summer 2025
-      [12849853.7, -3888589.6, 12972472.1, -3678912.9],
-      // Metro — Winter 2025 (almost identical, include for completeness)
-      [12850020.7, -3888589.6, 12972472.1, -3678912.9],
-      // Regional 2025 patches
-      [13601917.1, -2036448.3, 13613850.5, -2018876.1],
-      [12805526.3, -3980243.7, 12844310.0, -3963929.6],
-      [12647820.0, -2860816.2, 12664762.8, -2849396.5],
-      [12808064.4, -3566394.4, 12812071.9, -3564289.0],
-      [13806822.9, -4001161.3, 13825123.8, -3989874.7],
-      [12752048.4, -3369754.4, 12782872.8, -3308904.8],
-      [12994569.1, -2358403.7, 13012402.4, -2347790.5],
-      [13210506.6, -2310633.9, 13210551.1, -2310622.0],
-      [12912582.3, -3955894.5, 13110163.2, -3811265.8],
-      [13067694.8, -4129430.5, 13195567.5, -3962180.6]
-    ];
-
-    // Single Perth metro Web Mercator bbox covering Summer + Winter 2025
-    // (union of both seasons — virtually identical extent)
-    // Schools inside = green (covered), outside = red (no current imagery)
-    const arcadeExpr =
-      `var g = Geometry($feature);\n` +
-      `var x = g.x;\n` +
-      `var y = g.y;\n` +
-      `IIf(x >= 12849853 && x <= 12972473 && y >= -3888590 && y <= -3678912, "covered", "nocoverage")`;
-
-    schoolsLayer.renderer = {
-      type: "unique-value",
-      valueExpression: arcadeExpr,
-      defaultSymbol: {
-        type: "simple-marker",
-        color: "#e05c5c",
-        outline: { color: "#fff", width: 1 },
-        size: 8
-      },
-      defaultLabel: "No current imagery",
-      uniqueValueInfos: [
-        {
-          value: "covered",
-          label: "Current imagery available",
-          symbol: {
-            type: "simple-marker",
-            color: "#4caf7d",
-            outline: { color: "#fff", width: 1 },
-            size: 8
-          }
-        },
-        {
-          value: "nocoverage",
-          label: "No current imagery",
-          symbol: {
-            type: "simple-marker",
-            color: "#e05c5c",
-            outline: { color: "#fff", width: 1 },
-            size: 8
-          }
-        }
-      ]
-    };
-  }
-
+ 
   const map = new Map({
     basemap: "dark-gray-vector",
     layers: [regionalLayer, regArchiveLayer, metroLayer, archiveLayer, schoolsLayer, highlightLayer].filter(Boolean)
   });
-
+ 
   const view = new MapView({
     container: "viewDiv",
     map,
     center: [117.0, -28.5],
     zoom: 6
   });
-
+ 
   // ── State ─────────────────────────────────────────────────────────────────
   let selectedSchool   = null;
   let activeImageSublayers = [];   // currently visible imagery sublayers
   let coverageResults  = {};       // { seasonName: bool }
-
+ 
   // ── School Click on Map ───────────────────────────────────────────────────
   view.on("click", async (evt) => {
     const hitResult = await view.hitTest(evt, { include: [schoolsLayer] });
@@ -864,23 +750,23 @@ require([
       selectSchool(graphic);
     }
   });
-
+ 
   // ── Search ────────────────────────────────────────────────────────────────
   const searchInput   = document.getElementById("school-search");
   const searchResults = document.getElementById("search-results");
   let searchTimer;
-
+ 
   searchInput.addEventListener("input", () => {
     clearTimeout(searchTimer);
     const val = searchInput.value.trim();
     if (val.length < 2) { searchResults.classList.remove("open"); return; }
     searchTimer = setTimeout(() => doSearch(val), 300);
   });
-
+ 
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#search-wrap")) searchResults.classList.remove("open");
   });
-
+ 
   async function doSearch(term) {
     const q = new Query({
       where: `School_Name LIKE '%${term.toUpperCase()}%'`,
@@ -891,7 +777,7 @@ require([
       renderSearchResults(result.features);
     } catch(e) { console.warn("Search error", e); }
   }
-
+ 
   function renderSearchResults(features) {
     searchResults.innerHTML = "";
     if (!features.length) {
@@ -912,7 +798,7 @@ require([
     }
     searchResults.classList.add("open");
   }
-
+ 
   // ── Select School ─────────────────────────────────────────────────────────
   async function selectSchool(graphic) {
     selectedSchool = graphic;
@@ -920,24 +806,24 @@ require([
     const name  = attrs.School_Name || "Unknown School";
     const suburb = attrs.Broad_Classification || "";
     const region = attrs.Location_Code || "";
-
+ 
     // Update card
     document.getElementById("sc-name").textContent = name;
     document.getElementById("sc-meta").textContent = [suburb, region].filter(Boolean).join(" · ");
     document.getElementById("school-card").classList.add("visible");
     document.getElementById("empty-state").style.display = "none";
-
+ 
     // Zoom
     view.goTo({ target: graphic.geometry, zoom: 16 });
-
+ 
     // Highlight boundary
     highlightLayer.removeAll();
     await fetchAndHighlightBoundary(name, graphic.geometry);
-
+ 
     // Check coverage
     await checkCoverage(graphic.geometry);
   }
-
+ 
   async function fetchAndHighlightBoundary(schoolName, fallbackPoint) {
     try {
       const q = new Query({
@@ -963,16 +849,16 @@ require([
       }));
     }
   }
-
+ 
   // ── Coverage Check ────────────────────────────────────────────────────────
   async function checkCoverage(geometry) {
     document.getElementById("year-loading").classList.add("visible");
     document.getElementById("year-panel").innerHTML = "";
     coverageResults = {};
-
+ 
     const lon = geometry.longitude !== undefined ? geometry.longitude : geometry.x;
     const lat = geometry.latitude  !== undefined ? geometry.latitude  : geometry.y;
-
+ 
     YEAR_CONFIG.forEach(yr => {
       yr.seasons.forEach(s => {
         if (s.metroIdx !== null) {
@@ -989,12 +875,12 @@ require([
         }
       });
     });
-
+ 
     document.getElementById("year-loading").classList.remove("visible");
     renderYearPanel();
     updateCoverageSummary();
   }
-
+ 
   async function checkIndex(serviceUrl, sublayerId, geometry, seasonName, source) {
     const layerUrl = `${serviceUrl}/${sublayerId}`;
     const q = new Query({
@@ -1019,7 +905,7 @@ require([
       }
     }
   }
-
+ 
   function hasCoverageForSeason(s) {
     const metro      = s.metroIdx    !== null ? coverageResults[`${s.name}_metro`]       : false;
     const archive    = s.archiveIdx  !== null ? coverageResults[`${s.name}_archive`]     : false;
@@ -1029,16 +915,16 @@ require([
                        ? coverageResults[`${s.name}_reg_archive`] : false;
     return metro || regional || archive || regArchive;
   }
-
+ 
   // ── Render Year Panel ─────────────────────────────────────────────────────
   function renderYearPanel() {
     const panel = document.getElementById("year-panel");
     panel.innerHTML = "";
-
+ 
     YEAR_CONFIG.forEach(yr => {
       const coveredSeasons = yr.seasons.filter(s => hasCoverageForSeason(s));
       if (coveredSeasons.length === 0) return; // skip years with no coverage
-
+ 
       const group = document.createElement("div");
       group.className = "year-group";
       group.innerHTML = `
@@ -1057,40 +943,40 @@ require([
         </div>`;
       panel.appendChild(group);
     });
-
+ 
     if (panel.innerHTML === "") {
       panel.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">
         No imagery coverage found for this school location.</div>`;
     }
   }
-
+ 
   // ── Toggle Year Expand ────────────────────────────────────────────────────
   window.toggleYear = function(header) {
     const seasons = header.nextElementSibling;
     seasons.classList.toggle("open");
   };
-
+ 
   // ── Toggle Imagery Layer ──────────────────────────────────────────────────
   // Track current imagery check timer
   let imageryCheckTimer = null;
-
+ 
   window.toggleImagery = function(checkbox, seasonName, metroImgId, regImgId, archiveImgId) {
     const noImgMsg = document.getElementById("no-imagery-msg");
     if (imageryCheckTimer) { clearTimeout(imageryCheckTimer); imageryCheckTimer = null; }
     noImgMsg.classList.remove("visible");
-
+ 
     if (checkbox.checked) {
       document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => {
         if (cb !== checkbox) { cb.checked = false; }
       });
-
+ 
       if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
       if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
       if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
       if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
-
+ 
       let layerAdded = false;
-
+ 
       if (metroImgId !== null && metroImgId !== "null" && metroLayer) {
         metroLayer.sublayers.add({ id: parseInt(metroImgId), visible: true });
         metroLayer.visible = true;
@@ -1112,7 +998,7 @@ require([
         regArchiveLayer.visible = true;
         layerAdded = true;
       }
-
+ 
       // Show loading state in banner immediately
       const banner = document.getElementById("year-banner");
       const bannerText = document.getElementById("year-banner-text");
@@ -1120,7 +1006,7 @@ require([
       const yearMatch = seasonName.match(/\d{4}/);
       const yearNum = yearMatch ? yearMatch[0] : seasonName;
       const seasonPart = seasonName.replace(yearNum, "").trim();
-
+ 
       // Show a loading state first
       bannerText.textContent = "...";
       bannerSeason.textContent = "Loading";
@@ -1128,18 +1014,13 @@ require([
       banner.style.color = "var(--muted)";
       banner.classList.add("visible");
       setStatus(`Loading ${seasonName}…`);
-
-      // Track current season for compare tool
-      currentSeasonName = seasonName;
-      currentSeasonArgs = [metroImgId, regImgId, archiveImgId, regArchiveImgId];
-      document.getElementById("compare-btn").classList.add("visible");
-
+ 
       // Wait for imagery to actually render then update banner
       const activeLayer = metroImgId !== null && metroImgId !== "null" && metroLayer ? metroLayer
                         : archiveImgId !== null && archiveImgId !== "null" && archiveLayer ? archiveLayer
                         : regImgId !== null && regImgId !== "null" && regionalLayer ? regionalLayer
                         : regArchiveLayer;
-
+ 
       if (activeLayer) {
         view.whenLayerView(activeLayer).then(lv => {
           // Poll updating state
@@ -1171,19 +1052,15 @@ require([
         setStatus(`Showing: ${seasonName}`);
       }
     } else {
-      if (swipeWidget) { window.exitCompare(true); }
       if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
       if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
       if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
       if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
       document.getElementById("year-banner").classList.remove("visible");
-      document.getElementById("compare-btn").classList.remove("visible");
-      document.getElementById("compare-panel").classList.remove("visible");
-      currentSeasonName = null; currentSeasonArgs = null;
       setStatus("Click a year to view imagery");
     }
   };
-
+ 
   // ── Coverage Summary ──────────────────────────────────────────────────────
   function updateCoverageSummary() {
     let coveredYears = 0, coveredSeasons = 0, totalSeasons = 0;
@@ -1197,7 +1074,7 @@ require([
     document.getElementById("cs-total").textContent   = coveredSeasons + " seasons";
     document.getElementById("coverage-summary").classList.add("visible");
   }
-
+ 
   // ── Clear ─────────────────────────────────────────────────────────────────
   window.clearSelection = function() {
     selectedSchool = null;
@@ -1214,150 +1091,19 @@ require([
     document.getElementById("sc-meta").textContent = "—";
     document.getElementById("school-search").value = "";
     document.getElementById("year-banner").classList.remove("visible");
-    document.getElementById("compare-btn").classList.remove("visible");
-    document.getElementById("compare-panel").classList.remove("visible");
-    if (swipeWidget) { window.exitCompare(true); }
-    currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
     view.goTo({ center: [117.0, -28.5], zoom: 6 });
   };
-
+ 
   function setStatus(msg) {
     document.getElementById("status-bar").textContent = msg;
   }
-
-  // ── Compare / Swipe ───────────────────────────────────────────────────────
-  let swipeWidget = null;
-  let compareLayerLeading = null;
-  let compareLayerTrailing = null;
-  let currentSeasonName = null;
-  let currentSeasonArgs = null;
-
-  window.toggleComparePanel = function() {
-    const btn = document.getElementById("compare-btn");
-    const panel = document.getElementById("compare-panel");
-    if (panel.classList.contains("visible")) {
-      panel.classList.remove("visible");
-      btn.classList.remove("active");
-    } else {
-      panel.classList.add("visible");
-      btn.classList.add("active");
-      populateCompareDropdown();
-    }
-  };
-
-  function populateCompareDropdown() {
-    const select = document.getElementById("compare-select");
-    select.innerHTML = '<option value="">Select year to compare...</option>';
-    YEAR_CONFIG.forEach(yr => {
-      yr.seasons.forEach(s => {
-        if (hasCoverageForSeason(s) && s.name !== currentSeasonName) {
-          const opt = document.createElement("option");
-          opt.value = s.name;
-          opt.dataset.metroImg      = s.metroImg      ?? "null";
-          opt.dataset.regImg        = s.regImg        ?? "null";
-          opt.dataset.archiveImg    = s.archiveImg    ?? "null";
-          opt.dataset.regArchiveImg = s.regArchiveImg ?? "null";
-          opt.textContent = s.name;
-          select.appendChild(opt);
-        }
-      });
-    });
-  }
-
-  window.startCompare = function() {
-    const select = document.getElementById("compare-select");
-    const opt = select.options[select.selectedIndex];
-    if (!opt || !opt.value) return;
-
-    // Exit any existing swipe
-    if (swipeWidget) { window.exitCompare(true); }
-
-    const compareSeasonName = opt.value;
-    const compareArgs = [
-      opt.dataset.metroImg      !== "null" ? opt.dataset.metroImg      : null,
-      opt.dataset.regImg        !== "null" ? opt.dataset.regImg        : null,
-      opt.dataset.archiveImg    !== "null" ? opt.dataset.archiveImg    : null,
-      opt.dataset.regArchiveImg !== "null" ? opt.dataset.regArchiveImg : null
-    ];
-
-    // Load the compare imagery into cloned layers
-    compareLayerLeading  = buildImageryLayer(currentSeasonArgs[0], currentSeasonArgs[1], currentSeasonArgs[2], currentSeasonArgs[3]);
-    compareLayerTrailing = buildImageryLayer(compareArgs[0], compareArgs[1], compareArgs[2], compareArgs[3]);
-
-    if (!compareLayerLeading || !compareLayerTrailing) {
-      setStatus("Could not build compare layers"); return;
-    }
-
-    map.addMany([compareLayerLeading, compareLayerTrailing]);
-
-    // Hide the main imagery layers during compare
-    [metroLayer, archiveLayer, regionalLayer, regArchiveLayer].forEach(l => { if (l) l.visible = false; });
-
-    swipeWidget = new Swipe({
-      view: view,
-      leadingLayers:  [compareLayerLeading],
-      trailingLayers: [compareLayerTrailing],
-      position: 50,
-      direction: "horizontal"
-    });
-    view.ui.add(swipeWidget);
-
-    // Show labels
-    document.getElementById("label-left").textContent  = currentSeasonName;
-    document.getElementById("label-right").textContent = compareSeasonName;
-    document.getElementById("label-left").style.display  = "block";
-    document.getElementById("label-right").style.display = "block";
-
-    document.getElementById("compare-panel").classList.remove("visible");
-    document.getElementById("compare-btn").classList.remove("active");
-    setStatus(`Comparing: ${currentSeasonName} ↔ ${compareSeasonName}`);
-  };
-
-  function buildImageryLayer(metroImg, regImg, archiveImg, regArchiveImg) {
-    // Returns whichever layer type has data
-    if (metroImg) {
-      const l = new MapImageLayer({ url: METRO_SERVICE, sublayers: [{ id: parseInt(metroImg) }] });
-      l.load().catch(() => {});
-      return l;
-    }
-    if (archiveImg) {
-      const l = new MapImageLayer({ url: ARCHIVE_SERVICE, sublayers: [{ id: parseInt(archiveImg) }] });
-      l.load().catch(() => {});
-      return l;
-    }
-    if (regImg) {
-      const l = new MapImageLayer({ url: REGIONAL_SERVICE, sublayers: [{ id: parseInt(regImg) }] });
-      l.load().catch(() => {});
-      return l;
-    }
-    if (regArchiveImg) {
-      const l = new MapImageLayer({ url: REG_ARCHIVE_SERVICE, sublayers: [{ id: parseInt(regArchiveImg) }] });
-      l.load().catch(() => {});
-      return l;
-    }
-    return null;
-  }
-
-  window.exitCompare = function(silent) {
-    if (swipeWidget) { view.ui.remove(swipeWidget); swipeWidget.destroy(); swipeWidget = null; }
-    if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
-    if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
-    document.getElementById("label-left").style.display  = "none";
-    document.getElementById("label-right").style.display = "none";
-    document.getElementById("compare-btn").classList.remove("active");
-    document.getElementById("compare-panel").classList.remove("visible");
-    // Restore main layers
-    if (!silent && currentSeasonArgs) {
-      [metroLayer, archiveLayer, regionalLayer, regArchiveLayer].forEach(l => { if (l) l.visible = true; });
-    }
-    if (!silent) setStatus("Compare mode exited");
-  };
-
+ 
   view.when(() => setStatus("Map ready — search or click a school"));
-
+ 
 }); // end require
 </script>
 </body>
 </html>
+ 
