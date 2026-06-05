@@ -1164,17 +1164,25 @@ require([
     compareLayerLeading  = createImageLayer(currentSeasonArgs, "leading");
     compareLayerTrailing = createImageLayer([cMetro, cReg, cArchive, cRegArch], "trailing");
 
+    // Remove schools + highlight so we can re-add them on top of swipe layers
+    map.remove(schoolsLayer);
+    map.remove(highlightLayer);
+
     map.addMany([compareLayerLeading, compareLayerTrailing]);
+
+    // Re-add on top so they render above the swipe clip region
+    map.addMany([schoolsLayer, highlightLayer]);
 
     if (metroLayer)      metroLayer.visible      = false;
     if (archiveLayer)    archiveLayer.visible     = false;
     if (regionalLayer)   regionalLayer.visible    = false;
     if (regArchiveLayer) regArchiveLayer.visible  = false;
 
+    // Only give swipe the imagery layers — highlight/schools float above unclipped
     swipeWidget = new Swipe({
       view,
-      leadingLayers:  [compareLayerLeading,  highlightLayer, schoolsLayer],
-      trailingLayers: [compareLayerTrailing, highlightLayer, schoolsLayer],
+      leadingLayers:  [compareLayerLeading],
+      trailingLayers: [compareLayerTrailing],
       position: 50,
       direction: "horizontal"
     });
@@ -1213,6 +1221,11 @@ require([
     if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
     if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
     if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
+
+    // Ensure schools + highlight are back on top
+    map.remove(schoolsLayer);
+    map.remove(highlightLayer);
+    map.addMany([schoolsLayer, highlightLayer]);
 
     document.getElementById("label-left").style.display  = "none";
     document.getElementById("label-right").style.display = "none";
