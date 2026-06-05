@@ -190,6 +190,42 @@
       text-transform: uppercase;
     }
 
+    /* Compare mode */
+    #compare-btn {
+      position: absolute; bottom: 50px; right: 16px;
+      background: var(--panel); border: 1px solid var(--accent);
+      color: var(--accent); border-radius: 8px; padding: 8px 16px;
+      font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+      cursor: pointer; display: none; z-index: 10; transition: all .2s;
+    }
+    #compare-btn.visible { display: block; }
+    #compare-btn:hover { background: var(--accent); color: #fff; }
+    #compare-btn.active { background: var(--accent); color: #fff; }
+
+    #compare-panel {
+      position: absolute; bottom: 90px; right: 16px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; z-index: 10;
+      display: none; min-width: 220px;
+    }
+    #compare-panel.visible { display: block; }
+    #compare-panel .cp-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    #compare-select { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; margin-bottom: 8px; }
+    #compare-go { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+    #compare-go:hover { opacity: .85; }
+    #compare-exit { width: 100%; background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 6px; }
+    #compare-exit:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Swipe labels */
+    .swipe-label {
+      position: absolute; top: 60px; background: rgba(15,17,23,.8);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 12px; font-size: 11px; font-family: 'Space Mono', monospace;
+      color: var(--accent2); pointer-events: none; z-index: 5;
+    }
+    #label-left  { left: 16px; }
+    #label-right { right: 16px; }
+
     /* No imagery overlay */
     #no-imagery-msg {
       position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -292,6 +328,15 @@
       <div id="status-bar">Click a school on the map or search above</div>
       <div id="no-imagery-msg">⚠ No imagery available for this location and year</div>
       <div id="year-banner"><span id="year-banner-text">—</span><span class="season-label" id="year-banner-season"></span></div>
+      <div class="swipe-label" id="label-left" style="display:none"></div>
+      <div class="swipe-label" id="label-right" style="display:none"></div>
+      <button id="compare-btn" onclick="toggleComparePanel()">⇄ Compare Years</button>
+      <div id="compare-panel">
+        <div class="cp-title">Compare with another year</div>
+        <select id="compare-select"><option value="">Select year...</option></select>
+        <button id="compare-go" onclick="startCompare()">Start Comparison</button>
+        <button id="compare-exit" onclick="exitCompare()">✕ Exit Compare Mode</button>
+      </div>
       <div id="coverage-summary">
         <div class="cs-title">Coverage Summary</div>
         <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
@@ -317,12 +362,13 @@ require([
   "esri/symbols/SimpleMarkerSymbol",
   "esri/identity/IdentityManager",
   "esri/identity/OAuthInfo",
-  "esri/config"
+  "esri/config",
+  "esri/widgets/Swipe"
 ], function(
   Map, MapView, MapImageLayer, FeatureLayer,
   queryRest, Query, geometryEngine,
   Graphic, GraphicsLayer, SimpleFillSymbol, SimpleMarkerSymbol,
-  esriId, OAuthInfo, esriConfig
+  esriId, OAuthInfo, esriConfig, Swipe
 ) {
 
   // ── Service URLs ──────────────────────────────────────────────────────────
@@ -959,6 +1005,15 @@ require([
       banner.style.borderColor = "var(--muted)";
       banner.style.color = "var(--muted)";
       banner.classList.add("visible");
+      // Track current selection for compare
+      currentSeasonName = seasonName;
+      currentSeasonArgs = [
+        metroImgId     !== "null" ? metroImgId     : null,
+        regImgId       !== "null" ? regImgId       : null,
+        archiveImgId   !== "null" ? archiveImgId   : null,
+        (arguments[5] || null) !== "null" ? (arguments[5] || null) : null
+      ];
+      document.getElementById("compare-btn").classList.add("visible");
       setStatus(`Loading ${seasonName}…`);
 
       // Wait for imagery to actually render then update banner
@@ -1003,6 +1058,10 @@ require([
       if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
       if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
       document.getElementById("year-banner").classList.remove("visible");
+      document.getElementById("compare-btn").classList.remove("visible");
+      document.getElementById("compare-panel").classList.remove("visible");
+      if (swipeWidget) { window.exitCompare(); }
+      currentSeasonName = null; currentSeasonArgs = null;
       setStatus("Click a year to view imagery");
     }
   };
@@ -1037,6 +1096,10 @@ require([
     document.getElementById("sc-meta").textContent = "—";
     document.getElementById("school-search").value = "";
     document.getElementById("year-banner").classList.remove("visible");
+    document.getElementById("compare-btn").classList.remove("visible");
+    document.getElementById("compare-panel").classList.remove("visible");
+    if (swipeWidget) { window.exitCompare(); }
+    currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
     view.goTo({ center: [117.0, -28.5], zoom: 6 });
@@ -1045,6 +1108,140 @@ require([
   function setStatus(msg) {
     document.getElementById("status-bar").textContent = msg;
   }
+
+  // ── Compare / Swipe ───────────────────────────────────────────────────────
+  let swipeWidget = null;
+  let compareLayerLeading = null;
+  let compareLayerTrailing = null;
+  let currentSeasonName = null;
+  let currentSeasonArgs = null;
+
+  window.toggleComparePanel = function() {
+    const btn = document.getElementById("compare-btn");
+    const panel = document.getElementById("compare-panel");
+    if (panel.classList.contains("visible")) {
+      panel.classList.remove("visible");
+      btn.classList.remove("active");
+    } else {
+      panel.classList.add("visible");
+      btn.classList.add("active");
+      populateCompareDropdown();
+    }
+  };
+
+  function populateCompareDropdown() {
+    const select = document.getElementById("compare-select");
+    select.innerHTML = '<option value="">Select year to compare...</option>';
+    YEAR_CONFIG.forEach(yr => {
+      yr.seasons.forEach(s => {
+        if (hasCoverageForSeason(s) && s.name !== currentSeasonName) {
+          const opt = document.createElement("option");
+          opt.value = s.name;
+          opt.dataset.metroImg      = s.metroImg      ?? "null";
+          opt.dataset.regImg        = s.regImg         ?? "null";
+          opt.dataset.archiveImg    = s.archiveImg     ?? "null";
+          opt.dataset.regArchiveImg = s.regArchiveImg  ?? "null";
+          opt.textContent = s.name;
+          select.appendChild(opt);
+        }
+      });
+    });
+  }
+
+  window.startCompare = function() {
+    const select = document.getElementById("compare-select");
+    const opt = select.options[select.selectedIndex];
+    if (!opt || !opt.value) return;
+
+    const compareName = opt.value;
+    const cMetro   = opt.dataset.metroImg;
+    const cReg     = opt.dataset.regImg;
+    const cArchive = opt.dataset.archiveImg;
+    const cRegArch = opt.dataset.regArchiveImg;
+
+    if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
+
+    compareLayerLeading  = createImageLayer(currentSeasonArgs, "leading");
+    compareLayerTrailing = createImageLayer([cMetro, cReg, cArchive, cRegArch], "trailing");
+
+    map.addMany([compareLayerLeading, compareLayerTrailing]);
+
+    if (metroLayer)      metroLayer.visible      = false;
+    if (archiveLayer)    archiveLayer.visible     = false;
+    if (regionalLayer)   regionalLayer.visible    = false;
+    if (regArchiveLayer) regArchiveLayer.visible  = false;
+
+    swipeWidget = new Swipe({
+      view,
+      leadingLayers:  [compareLayerLeading],
+      trailingLayers: [compareLayerTrailing],
+      position: 50,
+      direction: "horizontal"
+    });
+    view.ui.add(swipeWidget);
+
+    document.getElementById("label-left").textContent  = currentSeasonName;
+    document.getElementById("label-right").textContent = compareName;
+    document.getElementById("label-left").style.display  = "block";
+    document.getElementById("label-right").style.display = "block";
+
+    document.getElementById("compare-panel").classList.remove("visible");
+    document.getElementById("compare-btn").textContent = "⇄ Comparing";
+    setStatus(`Comparing: ${currentSeasonName} ↔ ${compareName}`);
+  };
+
+  function createImageLayer(args, role) {
+    const [metroImg, regImg, archiveImg, regArchiveImg] = args;
+    const layer = new MapImageLayer({ sublayers: [], visible: true, opacity: 1 });
+    if (metroImg && metroImg !== "null") {
+      layer.url = METRO_SERVICE;
+      layer.sublayers.add({ id: parseInt(metroImg), visible: true });
+    } else if (archiveImg && archiveImg !== "null") {
+      layer.url = ARCHIVE_SERVICE;
+      layer.sublayers.add({ id: parseInt(archiveImg), visible: true });
+    } else if (regImg && regImg !== "null") {
+      layer.url = REGIONAL_SERVICE;
+      layer.sublayers.add({ id: parseInt(regImg), visible: true });
+    } else if (regArchiveImg && regArchiveImg !== "null") {
+      layer.url = REG_ARCHIVE_SERVICE;
+      layer.sublayers.add({ id: parseInt(regArchiveImg), visible: true });
+    }
+    return layer;
+  }
+
+  window.exitCompare = function() {
+    if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
+    if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
+    if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
+
+    document.getElementById("label-left").style.display  = "none";
+    document.getElementById("label-right").style.display = "none";
+    document.getElementById("compare-btn").textContent = "⇄ Compare Years";
+    document.getElementById("compare-btn").classList.remove("active");
+    document.getElementById("compare-panel").classList.remove("visible");
+
+    if (currentSeasonArgs) {
+      const [metroImg, regImg, archiveImg, regArchiveImg] = currentSeasonArgs;
+      if (metroImg && metroImg !== "null" && metroLayer) {
+        metroLayer.sublayers.removeAll();
+        metroLayer.sublayers.add({ id: parseInt(metroImg), visible: true });
+        metroLayer.visible = true;
+      } else if (archiveImg && archiveImg !== "null" && archiveLayer) {
+        archiveLayer.sublayers.removeAll();
+        archiveLayer.sublayers.add({ id: parseInt(archiveImg), visible: true });
+        archiveLayer.visible = true;
+      } else if (regImg && regImg !== "null" && regionalLayer) {
+        regionalLayer.sublayers.removeAll();
+        regionalLayer.sublayers.add({ id: parseInt(regImg), visible: true });
+        regionalLayer.visible = true;
+      } else if (regArchiveImg && regArchiveImg !== "null" && regArchiveLayer) {
+        regArchiveLayer.sublayers.removeAll();
+        regArchiveLayer.sublayers.add({ id: parseInt(regArchiveImg), visible: true });
+        regArchiveLayer.visible = true;
+      }
+    }
+    setStatus(`Showing: ${currentSeasonName}`);
+  };
 
   view.when(() => setStatus("Map ready — search or click a school"));
 
