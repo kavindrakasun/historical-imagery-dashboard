@@ -1173,8 +1173,8 @@ require([
 
     swipeWidget = new Swipe({
       view,
-      leadingLayers:  [compareLayerLeading],
-      trailingLayers: [compareLayerTrailing],
+      leadingLayers:  [compareLayerLeading,  highlightLayer, schoolsLayer],
+      trailingLayers: [compareLayerTrailing, highlightLayer, schoolsLayer],
       position: 50,
       direction: "horizontal"
     });
