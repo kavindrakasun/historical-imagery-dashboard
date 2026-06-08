@@ -226,13 +226,21 @@
 
     /* Swipe labels */
     .swipe-label {
-      position: absolute; top: 60px; background: rgba(255,255,255,0.95);
-      border: 1px solid var(--border); border-radius: 6px;
-      padding: 4px 12px; font-size: 11px; font-family: Arial, sans-serif; font-weight: 700;
-      color: var(--accent); pointer-events: none; z-index: 5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: absolute; top: 10px;
+      background: rgba(255,255,255,0.97); border: 2px solid var(--accent);
+      border-radius: 8px; padding: 8px 24px;
+      font-family: Arial, sans-serif; font-size: 22px; font-weight: 700;
+      color: var(--header-bg); letter-spacing: 3px;
+      pointer-events: none; z-index: 5;
+      box-shadow: 0 4px 16px rgba(0,123,138,0.15);
     }
-    #label-left  { left: 16px; }
+    .swipe-label .sl-season {
+      display: block; font-family: Arial, sans-serif;
+      font-size: 11px; font-weight: 400; letter-spacing: 2px;
+      color: var(--muted); text-align: center; margin-top: 2px;
+      text-transform: uppercase;
+    }
+    #label-left  { left: 200px; }
     #label-right { right: 16px; }
 
     /* No imagery overlay */
@@ -1217,8 +1225,19 @@ require([
     });
     view.ui.add(swipeWidget);
 
-    document.getElementById("label-left").textContent  = currentSeasonName;
-    document.getElementById("label-right").textContent = compareName;
+    // Hide the centre year banner while comparing
+    document.getElementById("year-banner").classList.remove("visible");
+
+    // Helper to build label HTML with year + season split
+    function makeSwipeLabel(name) {
+      const yearMatch = name.match(/\d{4}/);
+      const yearNum   = yearMatch ? yearMatch[0] : name;
+      const season    = name.replace(yearNum, "").trim();
+      return `${yearNum}<span class="sl-season">${season || "Annual"}</span>`;
+    }
+
+    document.getElementById("label-left").innerHTML  = makeSwipeLabel(currentSeasonName);
+    document.getElementById("label-right").innerHTML = makeSwipeLabel(compareName);
     document.getElementById("label-left").style.display  = "block";
     document.getElementById("label-right").style.display = "block";
 
@@ -1262,6 +1281,11 @@ require([
     document.getElementById("compare-btn").classList.remove("active");
     document.getElementById("compare-panel").classList.remove("visible");
     document.getElementById("compare-select").value = "";
+
+    // Restore the centre year banner
+    if (currentSeasonName) {
+      document.getElementById("year-banner").classList.add("visible");
+    }
 
     if (currentSeasonArgs) {
       const [metroImg, regImg, archiveImg, regArchiveImg] = currentSeasonArgs;
