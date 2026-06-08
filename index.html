@@ -172,16 +172,7 @@
       font-family: Arial, sans-serif;
     }
     #clear-btn:hover { border-color: var(--danger); background: rgba(192,57,43,.08); }
-    #clear-imagery-btn {
-      position: absolute; top: 10px; left: 10px;
-      font-size: 11px; color: var(--accent); background: rgba(255,255,255,0.97);
-      border: 1px solid rgba(0,123,138,.4);
-      border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all .15s;
-      font-family: Arial, sans-serif; display: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    #clear-imagery-btn.visible { display: block; }
-    #clear-imagery-btn:hover { border-color: var(--accent); background: rgba(0,123,138,.08); }
+
 
     /* Active year banner */
     #year-banner {
@@ -365,7 +356,7 @@
         <div class="cs-row"><span class="cs-label">Seasons available</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
         <button id="clear-btn" onclick="clearSelection()" style="margin-top:10px;width:100%;">✕ Clear School</button>
       </div>
-      <button id="clear-imagery-btn" onclick="clearImagery()">⊘ Clear Imagery</button>
+
     </div>
   </div>
 </div>
@@ -1015,7 +1006,6 @@ require([
         const yearNum   = yearMatch ? yearMatch[0] : seasonName;
         const season    = seasonName.replace(yearNum, "").trim();
         document.getElementById("label-left").innerHTML = `${yearNum}<span class="sl-season">${season || "Annual"}</span>`;
-        showClearImageryBtn();
         setStatus(`Comparing: ${seasonName} ↔ ${document.getElementById("label-right").textContent.replace(/\n.*/,"").trim()}`);
         return; // don't touch normal layers or banner
       }
@@ -1057,7 +1047,6 @@ require([
       banner.style.color = "var(--muted)";
       banner.classList.add("visible");
       document.getElementById("compare-btn").classList.add("visible");
-      showClearImageryBtn();
       setStatus(`Loading ${seasonName}…`);
 
       const activeLayer = metroImgId !== null && metroImgId !== "null" && metroLayer ? metroLayer
@@ -1122,33 +1111,7 @@ require([
   }
 
   // ── Clear ─────────────────────────────────────────────────────────────────
-  // ── Clear Imagery Only ────────────────────────────────────────────────────
-  function showClearImageryBtn() {
-    const btn = document.getElementById("clear-imagery-btn");
-    const summary = document.getElementById("coverage-summary");
-    if (summary.classList.contains("visible")) {
-      const h = summary.offsetHeight;
-      btn.style.top = (10 + h + 8) + "px";
-    } else {
-      btn.style.top = "10px";
-    }
-    btn.classList.add("visible");
-  }
 
-  window.clearImagery = function() {
-    if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
-    if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
-    if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
-    if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
-    if (swipeWidget) { window.exitCompare(); }
-    document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => cb.checked = false);
-    document.getElementById("year-banner").classList.remove("visible");
-    document.getElementById("compare-btn").classList.remove("visible");
-    document.getElementById("compare-panel").classList.remove("visible");
-    document.getElementById("clear-imagery-btn").classList.remove("visible");
-    currentSeasonName = null; currentSeasonArgs = null;
-    setStatus("Imagery cleared — select a year to view");
-  };
 
   window.clearSelection = function() {
     selectedSchool = null;
@@ -1178,7 +1141,6 @@ require([
     document.getElementById("compare-btn").textContent = "⇄ Compare Years";
     document.getElementById("compare-panel").classList.remove("visible");
     document.getElementById("compare-select").value = "";
-    document.getElementById("clear-imagery-btn").classList.remove("visible");
     document.getElementById("label-left").style.display  = "none";
     document.getElementById("label-right").style.display = "none";
 
@@ -1288,7 +1250,6 @@ require([
 
     // Keep panel open so user can switch years
     document.getElementById("compare-btn").textContent = "⇄ Comparing";
-    showClearImageryBtn();
     setStatus(`Comparing: ${currentSeasonName} ↔ ${compareName}`);
   };
 
