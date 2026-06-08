@@ -739,8 +739,13 @@ require([
   const view = new MapView({
     container: "viewDiv",
     map,
-    center: [122.5, -26.0],
-    zoom: 5
+    extent: {
+      xmin: 93.0,
+      ymin: -35.5,
+      xmax: 132.0,
+      ymax: -13.0,
+      spatialReference: { wkid: 4326 }
+    }
   });
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -1147,7 +1152,9 @@ require([
     currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
-    view.goTo({ center: [122.5, -26.0], zoom: 5 });
+    view.goTo({ 
+      extent: { xmin: 93.0, ymin: -35.5, xmax: 132.0, ymax: -13.0, spatialReference: { wkid: 4326 } }
+    });
   };
 
   function setStatus(msg) {
