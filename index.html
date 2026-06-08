@@ -981,36 +981,65 @@ require([
         if (cb !== checkbox) { cb.checked = false; }
       });
 
+      const regArchiveImgId = arguments[5] || null;
+
+      // Update tracking state
+      currentSeasonName = seasonName;
+      currentSeasonArgs = [
+        metroImgId       !== "null" ? metroImgId       : null,
+        regImgId         !== "null" ? regImgId         : null,
+        archiveImgId     !== "null" ? archiveImgId     : null,
+        regArchiveImgId  !== "null" ? regArchiveImgId  : null
+      ];
+
+      // ── If compare is active, update the leading layer only ──────────────
+      if (swipeWidget) {
+        // Rebuild leading layer with new selection
+        if (compareLayerLeading) { map.remove(compareLayerLeading); compareLayerLeading = null; }
+        compareLayerLeading = createImageLayer(currentSeasonArgs, "leading");
+
+        map.remove(schoolsLayer);
+        map.remove(highlightLayer);
+        map.addMany([compareLayerLeading, compareLayerTrailing]);
+        map.addMany([schoolsLayer, highlightLayer]);
+
+        swipeWidget.leadingLayers.removeAll();
+        swipeWidget.leadingLayers.add(compareLayerLeading);
+
+        // Update left label
+        const yearMatch = seasonName.match(/\d{4}/);
+        const yearNum   = yearMatch ? yearMatch[0] : seasonName;
+        const season    = seasonName.replace(yearNum, "").trim();
+        document.getElementById("label-left").innerHTML = `${yearNum}<span class="sl-season">${season || "Annual"}</span>`;
+
+        setStatus(`Comparing: ${seasonName} ↔ ${document.getElementById("label-right").textContent.replace(/\n.*/,"").trim()}`);
+        return; // don't touch normal layers or banner
+      }
+
+      // ── Normal (non-compare) mode ─────────────────────────────────────────
       if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
       if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
       if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
       if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
 
-      let layerAdded = false;
-
       if (metroImgId !== null && metroImgId !== "null" && metroLayer) {
         metroLayer.sublayers.add({ id: parseInt(metroImgId), visible: true });
         metroLayer.visible = true;
-        layerAdded = true;
       }
       if (archiveImgId !== null && archiveImgId !== "null" && archiveLayer) {
         archiveLayer.sublayers.add({ id: parseInt(archiveImgId), visible: true });
         archiveLayer.visible = true;
-        layerAdded = true;
       }
       if (regImgId !== null && regImgId !== "null" && regionalLayer) {
         regionalLayer.sublayers.add({ id: parseInt(regImgId), visible: true });
         regionalLayer.visible = true;
-        layerAdded = true;
       }
-      const regArchiveImgId = arguments[5] || null;
       if (regArchiveImgId !== null && regArchiveImgId !== "null" && regArchiveLayer) {
         regArchiveLayer.sublayers.add({ id: parseInt(regArchiveImgId), visible: true });
         regArchiveLayer.visible = true;
-        layerAdded = true;
       }
 
-      // Show loading state in banner immediately
+      // Show banner (only in non-compare mode)
       const banner = document.getElementById("year-banner");
       const bannerText = document.getElementById("year-banner-text");
       const bannerSeason = document.getElementById("year-banner-season");
@@ -1018,24 +1047,14 @@ require([
       const yearNum = yearMatch ? yearMatch[0] : seasonName;
       const seasonPart = seasonName.replace(yearNum, "").trim();
 
-      // Show a loading state first
       bannerText.textContent = "...";
       bannerSeason.textContent = "Loading";
       banner.style.borderColor = "var(--muted)";
       banner.style.color = "var(--muted)";
       banner.classList.add("visible");
-      // Track current selection for compare
-      currentSeasonName = seasonName;
-      currentSeasonArgs = [
-        metroImgId     !== "null" ? metroImgId     : null,
-        regImgId       !== "null" ? regImgId       : null,
-        archiveImgId   !== "null" ? archiveImgId   : null,
-        (arguments[5] || null) !== "null" ? (arguments[5] || null) : null
-      ];
       document.getElementById("compare-btn").classList.add("visible");
       setStatus(`Loading ${seasonName}…`);
 
-      // Wait for imagery to actually render then update banner
       const activeLayer = metroImgId !== null && metroImgId !== "null" && metroLayer ? metroLayer
                         : archiveImgId !== null && archiveImgId !== "null" && archiveLayer ? archiveLayer
                         : regImgId !== null && regImgId !== "null" && regionalLayer ? regionalLayer
@@ -1043,7 +1062,6 @@ require([
 
       if (activeLayer) {
         view.whenLayerView(activeLayer).then(lv => {
-          // Poll updating state
           const checkLoaded = () => {
             if (!lv.updating) {
               bannerText.textContent = yearNum;
@@ -1055,7 +1073,6 @@ require([
               setTimeout(checkLoaded, 200);
             }
           };
-          // Small delay to let updating start
           setTimeout(checkLoaded, 300);
         }).catch(() => {
           bannerText.textContent = yearNum;
