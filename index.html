@@ -739,8 +739,8 @@ require([
   const view = new MapView({
     container: "viewDiv",
     map,
-    center: [117.0, -28.5],
-    zoom: 6
+    center: [122.5, -26.0],
+    zoom: 5
   });
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -1147,7 +1147,7 @@ require([
     currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
-    view.goTo({ center: [117.0, -28.5], zoom: 6 });
+    view.goTo({ center: [122.5, -26.0], zoom: 5 });
   };
 
   function setStatus(msg) {
