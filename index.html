@@ -1153,10 +1153,19 @@ require([
   window.clearSelection = function() {
     selectedSchool = null;
     highlightLayer.removeAll();
+
+    // Force all imagery off
     if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
     if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
     if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
     if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
+
+    // Destroy swipe widget directly without restoring layers
+    if (swipeWidget) { swipeWidget.destroy(); swipeWidget = null; }
+    if (compareLayerLeading)  { map.remove(compareLayerLeading);  compareLayerLeading  = null; }
+    if (compareLayerTrailing) { map.remove(compareLayerTrailing); compareLayerTrailing = null; }
+
+    // Reset all UI
     document.getElementById("school-card").classList.remove("visible");
     document.getElementById("year-panel").innerHTML = "";
     document.getElementById("empty-state").style.display = "";
@@ -1166,9 +1175,13 @@ require([
     document.getElementById("school-search").value = "";
     document.getElementById("year-banner").classList.remove("visible");
     document.getElementById("compare-btn").classList.remove("visible");
+    document.getElementById("compare-btn").textContent = "⇄ Compare Years";
     document.getElementById("compare-panel").classList.remove("visible");
+    document.getElementById("compare-select").value = "";
     document.getElementById("clear-imagery-btn").classList.remove("visible");
-    if (swipeWidget) { window.exitCompare(); }
+    document.getElementById("label-left").style.display  = "none";
+    document.getElementById("label-right").style.display = "none";
+
     currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
