@@ -172,6 +172,12 @@
       font-family: Arial, sans-serif;
     }
     #clear-btn:hover { border-color: var(--danger); background: rgba(192,57,43,.08); }
+    #clear-imagery-btn {
+      font-size: 11px; color: var(--accent); background: none; border: 1px solid rgba(0,123,138,.4);
+      border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all .15s;
+      font-family: Arial, sans-serif;
+    }
+    #clear-imagery-btn:hover { border-color: var(--accent); background: rgba(0,123,138,.08); }
 
     /* Active year banner */
     #year-banner {
@@ -346,6 +352,7 @@
         <div class="cs-row"><span class="cs-label">Years with data</span><span class="cs-val" id="cs-covered">—</span></div>
         <div class="cs-row"><span class="cs-label">Seasons available</span><span class="cs-val" style="color:var(--muted)" id="cs-total">—</span></div>
         <button id="clear-btn" onclick="clearSelection()" style="margin-top:10px;width:100%;">✕ Clear School</button>
+        <button id="clear-imagery-btn" onclick="clearImagery()" style="margin-top:6px;width:100%;">⊘ Clear Imagery</button>
       </div>
     </div>
   </div>
@@ -1085,6 +1092,25 @@ require([
   }
 
   // ── Clear ─────────────────────────────────────────────────────────────────
+  // ── Clear Imagery Only ────────────────────────────────────────────────────
+  window.clearImagery = function() {
+    // Turn off all imagery layers
+    if (metroLayer)      { metroLayer.sublayers.removeAll();      metroLayer.visible = false; }
+    if (archiveLayer)    { archiveLayer.sublayers.removeAll();    archiveLayer.visible = false; }
+    if (regionalLayer)   { regionalLayer.sublayers.removeAll();   regionalLayer.visible = false; }
+    if (regArchiveLayer) { regArchiveLayer.sublayers.removeAll(); regArchiveLayer.visible = false; }
+    // Exit compare if active
+    if (swipeWidget) { window.exitCompare(); }
+    // Uncheck all checkboxes in the year panel
+    document.querySelectorAll("#year-panel input[type=checkbox]").forEach(cb => cb.checked = false);
+    // Hide banner and compare button
+    document.getElementById("year-banner").classList.remove("visible");
+    document.getElementById("compare-btn").classList.remove("visible");
+    document.getElementById("compare-panel").classList.remove("visible");
+    currentSeasonName = null; currentSeasonArgs = null;
+    setStatus("Imagery cleared — select a year to view");
+  };
+
   window.clearSelection = function() {
     selectedSchool = null;
     highlightLayer.removeAll();
