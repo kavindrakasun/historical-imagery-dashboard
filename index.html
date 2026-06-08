@@ -1152,9 +1152,7 @@ require([
     currentSeasonName = null; currentSeasonArgs = null;
     coverageResults = {};
     setStatus("Click a school on the map or search above");
-    view.goTo({ 
-      extent: { xmin: 93.0, ymin: -35.5, xmax: 132.0, ymax: -13.0, spatialReference: { wkid: 4326 } }
-    });
+    if (homeExtent) view.goTo(homeExtent);
   };
 
   function setStatus(msg) {
@@ -1324,7 +1322,11 @@ require([
     setStatus(`Showing: ${currentSeasonName}`);
   };
 
-  view.when(() => setStatus("Map ready — search or click a school"));
+  let homeExtent = null;
+  view.when(() => {
+    homeExtent = view.extent.clone();
+    setStatus("Map ready — search or click a school");
+  });
 
 }); // end require
 </script>
